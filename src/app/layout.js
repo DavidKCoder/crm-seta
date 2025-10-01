@@ -1,20 +1,21 @@
-// "use client" убрано
-import { Geist, Geist_Mono, Lato } from "next/font/google";
+import { Geist, Lato } from "next/font/google";
 import "./globals.css";
 import Sidebar from "../components/Sidebar";
 import Image from "next/image";
-import { FiSearch } from "react-icons/fi";
+import { IoNotificationsOutline, IoSettingsOutline } from "react-icons/io5";
+import ThemeSwitch from "@/components/ThemeSwitch";
+
+const USER_ROLE = process.env.NEXT_PUBLIC_CURRENT_USER;
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 const lato = Lato({ weight: "400", variable: "--font-lato", subsets: ["latin"] });
 
 export const metadata = {
-    title: "CRM",
+    title: "SETA CRM",
     description: "Simple CRM prototype",
 };
 
-const currentUser = { name: "John R.", role: "Manager", avatar: "https://i.pravatar.cc/32?img=14" };
+const currentUser = { name: "John R.", role: USER_ROLE, avatar: "https://i.pravatar.cc/32?img=14" };
 
 export default function RootLayout({ children }) {
     return (
@@ -22,18 +23,12 @@ export default function RootLayout({ children }) {
         <body className={`${geistSans.variable} ${lato.variable}`}>
         <div className="flex min-h-screen">
             <Sidebar />
-            <main className="flex-1 p-4 light flex flex-col">
-                <div className="flex justify-between items-center mb-2 rounded-lg bg-purple-50 p-1.5">
-                    <div className="relative w-1/2">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="w-full border rounded-md pl-10 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                    </div>
-
+            <main className="flex-1 p-4 light flex flex-col bg-gray-100">
+                <div className="flex justify-end items-center mb-4 rounded-lg bg-purple-50 p-1.5">
                     <div className="flex items-center gap-2">
+                        <ThemeSwitch />
+                        <IoSettingsOutline size={22} className="text-gray-900"/>
+                        <IoNotificationsOutline size={22} className="text-gray-900" />
                         <Image
                             src={currentUser.avatar}
                             alt={currentUser.name}
@@ -47,7 +42,6 @@ export default function RootLayout({ children }) {
                         </div>
                     </div>
                 </div>
-
                 {children}
             </main>
         </div>
