@@ -1,41 +1,50 @@
-"use client"
+"use client";
 
 import { useState } from "react";
-import { FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { useTranslation } from "react-i18next";
+import PackageModal from "@/app/packages/PackageModal";
+import { TbCurrencyDram } from "react-icons/tb";
 
 const initialPackages = [
     {
         id: 1,
-        title: "Starter SMM",
-        price: "$49/мес",
-        services: ["3 публикации в неделю", "Аналитика вовлеченности", "Базовый дизайн постов"],
+        title: "Սկզբնական SMM",
+        price: 9900,
+        services: [
+            "Շաբաթական 3 հրապարակում",
+            "Ներգրավվածության վերլուծություն",
+            "Հիմնական դիզայն հրապարակումների համար",
+        ],
     },
     {
         id: 2,
-        title: "Business SMM",
-        price: "$99/мес",
+        title: "Բիզնես SMM",
+        price: 14800,
         services: [
-            "5 публикаций в неделю",
-            "Аналитика и отчеты",
-            "Дизайн постов + сторис",
-            "Таргетированная реклама",
+            "Շաբաթական 5 հրապարակում",
+            "Վերլուծություն և հաշվետվություններ",
+            "Հրապարակումների և պատմությունների դիզայն",
+            "Թիրախավորված գովազդ",
         ],
     },
     {
         id: 3,
-        title: "Premium SMM",
-        price: "$199/мес",
+        title: "Պրեմիում SMM",
+        price: 35000,
         services: [
-            "Ежедневные публикации",
-            "Полная аналитика и отчеты",
-            "Профессиональный дизайн",
-            "Таргет + продвижение контента",
-            "Стратегия SMM",
+            "Ամենօրյա հրապարակումներ",
+            "Լիարժեք վերլուծություն և հաշվետվություններ",
+            "Պրոֆեսիոնալ դիզայն",
+            "Թիրախավորում + բովանդակության առաջխաղացում",
+            "SMM ռազմավարություն",
         ],
     },
 ];
 
+
 export default function PackagesPageContent() {
+    const { t } = useTranslation();
     const [packages, setPackages] = useState(initialPackages);
     const [modalOpen, setModalOpen] = useState(false);
     const [editId, setEditId] = useState(null);
@@ -57,7 +66,7 @@ export default function PackagesPageContent() {
     };
 
     const handleSubmit = () => {
-        if (!form.title.trim()) return alert("Введите название пакета");
+        if (!form.title.trim()) return alert(t("EnterPackageName"));
 
         const newPkg = {
             id: editId || Date.now(),
@@ -76,7 +85,7 @@ export default function PackagesPageContent() {
     };
 
     const deletePackage = (id) => {
-        if (confirm("Вы уверены, что хотите удалить пакет?")) {
+        if (confirm(t("DeleteConfirm"))) {
             setPackages(packages.filter((p) => p.id !== id));
         }
     };
@@ -85,12 +94,12 @@ export default function PackagesPageContent() {
         <div className="p-6 bg-gray-100 min-h-screen text-gray-800">
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Our SMM-packages</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{t("Packages")}</h1>
                 <button
                     onClick={() => openModal()}
                     className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 shadow cursor-pointer"
                 >
-                    Add Package
+                    {t("AddPackage")}
                 </button>
             </div>
 
@@ -102,7 +111,7 @@ export default function PackagesPageContent() {
                         className="bg-white rounded-xl shadow p-4 flex flex-col text-center relative h-full"
                     >
                         <h2 className="text-lg font-semibold mb-1 text-gray-900">{pkg.title}</h2>
-                        <p className="text-purple-600 font-bold mb-2">{pkg.price}</p>
+                        <p className="text-purple-600 font-bold mb-2 flex items-center justify-center">{pkg.price.toLocaleString("en-US")} <TbCurrencyDram /></p>
                         <ul className="text-gray-600 text-sm list-disc list-inside flex-grow my-2">
                             {pkg.services.map((s, i) => (
                                 <li key={i} className="text-left">
@@ -116,13 +125,13 @@ export default function PackagesPageContent() {
                                 onClick={() => openModal(pkg)}
                                 className="flex items-center gap-1 bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500 text-xs cursor-pointer"
                             >
-                                <FiEdit2 size={14} /> Edit
+                                <FiEdit2 size={14} /> {t("Edit")}
                             </button>
                             <button
                                 onClick={() => deletePackage(pkg.id)}
                                 className="flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
                             >
-                                <FiTrash2 size={14} /> Delete
+                                <FiTrash2 size={14} /> {t("Delete")}
                             </button>
                         </div>
                     </div>
@@ -130,70 +139,15 @@ export default function PackagesPageContent() {
             </div>
 
             {/* Modal */}
-            {modalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
-                        {/* Close button */}
-                        <button
-                            onClick={() => setModalOpen(false)}
-                            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 cursor-pointer"
-                        >
-                            <FiX size={20} />
-                        </button>
-
-                        <h2 className="text-xl font-bold mb-4">
-                            {editId ? "Edit Package" : "Add Package"}
-                        </h2>
-
-                        <div className="space-y-3">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Title</label>
-                                <input
-                                    type="text"
-                                    value={form.title}
-                                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                                    className="border rounded p-2 w-full"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Price</label>
-                                <input
-                                    type="text"
-                                    value={form.price}
-                                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                                    className="border rounded p-2 w-full"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Services (через запятую)</label>
-                                <textarea
-                                    rows={3}
-                                    value={form.services}
-                                    onChange={(e) => setForm({ ...form, services: e.target.value })}
-                                    className="border rounded p-2 w-full"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3 mt-6">
-                            <button
-                                onClick={() => setModalOpen(false)}
-                                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 cursor-pointer"
-                            >
-                                {editId ? "Save" : "Add"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <PackageModal
+                t={t}
+                modalOpen={modalOpen}
+                setModalOpen={setModalOpen}
+                editId={editId}
+                form={form}
+                setForm={setForm}
+                handleSubmit={handleSubmit}
+            />
         </div>
     );
 }

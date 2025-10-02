@@ -6,8 +6,10 @@ import { FiMail, FiEdit2, FiTrash, FiPhone } from "react-icons/fi";
 import { getStatusColor } from "@/constants/colors/statusColors";
 import { TbCurrencyDram } from "react-icons/tb";
 import { DealAvatar } from "@/app/deals/components/DealAvatar";
+import { useTranslation } from "react-i18next";
 
-export function DealActions({ deal, st, handleEdit, handleDelete }) {
+export function DealCard({ deal, st, handleEdit, handleDelete }) {
+    const { t } = useTranslation();
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
@@ -28,8 +30,16 @@ export function DealActions({ deal, st, handleEdit, handleDelete }) {
                                 onClick={() => setMenuOpen((prev) => !prev)}
                             />
                             {menuOpen && (
-                                <div
-                                    className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-20 cursor-pointer">
+                                <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-20 cursor-pointer">
+                                    <button
+                                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left cursor-pointer"
+                                        onClick={() => {
+                                            handleEdit(deal);
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        <FiEdit2 size={14} /> {t("Edit")}
+                                    </button>
                                     <button
                                         className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left cursor-pointer"
                                         onClick={() => {
@@ -40,16 +50,7 @@ export function DealActions({ deal, st, handleEdit, handleDelete }) {
                                             setMenuOpen(false);
                                         }}
                                     >
-                                        <FiMail size={14} /> Email
-                                    </button>
-                                    <button
-                                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left cursor-pointer"
-                                        onClick={() => {
-                                            handleEdit(deal);
-                                            setMenuOpen(false);
-                                        }}
-                                    >
-                                        <FiEdit2 size={14} /> Edit
+                                        <FiMail size={14} /> {t("Email")}
                                     </button>
                                     <button
                                         className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left text-red-600 cursor-pointer"
@@ -58,7 +59,7 @@ export function DealActions({ deal, st, handleEdit, handleDelete }) {
                                             setMenuOpen(false);
                                         }}
                                     >
-                                        <FiTrash size={14} /> Delete
+                                        <FiTrash size={14} /> {t("Delete")}
                                     </button>
                                 </div>
                             )}
@@ -73,7 +74,7 @@ export function DealActions({ deal, st, handleEdit, handleDelete }) {
                         <FiMail size={14} /> {deal.email}
                     </div>
                     <span className="text-gray-700 text-sm flex items-center gap-1">
-                        {Number(deal.value).toLocaleString("en-IN")} <TbCurrencyDram />
+                        {Number(deal.value).toLocaleString("en-US")} <TbCurrencyDram />
                     </span>
                 </div>
             </div>

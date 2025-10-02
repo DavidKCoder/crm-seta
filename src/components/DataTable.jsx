@@ -7,6 +7,8 @@ import { getStatusColor } from "@/constants/colors/statusColors";
 import FormModal from "@/components/FormModal";
 import { FaFacebookF, FaGlobe, FaInstagram } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
+import Alert from "@/components/Alert";
+import { useTranslation } from "react-i18next";
 
 const statusOrder = [
     "New", "Pending", "Approved", "Copy Writing", "Shooting",
@@ -14,12 +16,18 @@ const statusOrder = [
 ];
 
 export default function DataTable({ initialData, columns, title }) {
+    const { t } = useTranslation();
     const [data, setData] = useState(initialData);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formState, setFormState] = useState({});
     const [filter, setFilter] = useState("");
+    const [alert, setAlert] = useState({ show: false, type: "success", message: "" });
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
 
     const requestSort = (key) => {
         if (sortConfig.key === key) {
@@ -59,6 +67,13 @@ export default function DataTable({ initialData, columns, title }) {
         return sorted;
     }, [filteredData, sortConfig]);
 
+    // Pagination logic
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return sortedData.slice(startIndex, startIndex + itemsPerPage);
+    }, [sortedData, currentPage, itemsPerPage]);
+
     const handleEdit = (item) => {
         setEditingId(item.id);
         setFormState({ ...item });
@@ -75,28 +90,36 @@ export default function DataTable({ initialData, columns, title }) {
         setFormState({});
         setEditingId(null);
         setShowForm(false);
-    };
 
+        setAlert({ show: true, type: "success", message: "Data saved successfully!" });
+        setTimeout(() => setAlert({ ...alert, show: false }), 3000);
+    };
 
     return (
         <div>
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl text-gray-900 font-bold">{`${title}'s`}</h1>
+                <h1 className="text-2xl text-gray-900 font-bold">{t(title)}</h1>
                 <div className="flex gap-2 items-center">
                     <div className="relative">
                         <input
                             type="text"
-                            placeholder="Filter..."
+                            placeholder={`${t("Filter")}...`}
                             value={filter}
-                            onChange={e => setFilter(e.target.value)}
+                            onChange={e => {
+                                setFilter(e.target.value);
+                                setCurrentPage(1); // reset page при фильтре
+                            }}
                             className="border p-2 rounded w-64 pr-8 text-gray-900 border-gray-800"
                         />
                         {filter && (
                             <IoMdClose
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-700"
                                 size={20}
-                                onClick={() => setFilter("")}
+                                onClick={() => {
+                                    setFilter("");
+                                    setCurrentPage(1);
+                                }}
                             />
                         )}
                     </div>
@@ -109,7 +132,7 @@ export default function DataTable({ initialData, columns, title }) {
                             setFormState({});
                         }}
                     >
-                        Add {title}
+                        {t("Add")}
                     </button>
                 </div>
             </div>
@@ -149,7 +172,7 @@ export default function DataTable({ initialData, columns, title }) {
                     </tr>
                     </thead>
                     <tbody>
-                    {sortedData.length ? sortedData.map(item => (
+                    {paginatedData.length ? paginatedData.map(item => (
                         <tr key={item.id} className="border-t hover:bg-gray-50">
                             {columns.map(col => (
                                 <td key={col.key} className="p-3 text-gray-900">
@@ -200,17 +223,80 @@ export default function DataTable({ initialData, columns, title }) {
                                 </td>
                             ))}
                         </tr>
-                    )) : <tr>
-                        <td colSpan={columns.length}>
-                            <div className="flex flex-col items-center justify-center py-10 text-gray-400 h-fit">
-                                <FiInbox size={40} className="mb-3" />
-                                <span>No data available</span>
-                            </div>
-                        </td>
-                    </tr>}
+                    )) : (
+                        <tr>
+                            <td colSpan={columns.length}>
+                                <div className="flex flex-col items-center justify-center py-10 text-gray-400 h-fit">
+                                    <FiInbox size={40} className="mb-3" />
+                                    <span>No data available</span>
+                                </div>
+                            </td>
+                        </tr>
+                    )}
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 0 && (
+                <div className="flex justify-between items-center mt-4 text-gray-700">
+                    <div className="flex items-center gap-2">
+                        <span>{t("Rows per page")}:</span>
+                        <select
+                            value={itemsPerPage}
+                            onChange={e => {
+                                setItemsPerPage(Number(e.target.value));
+                                setCurrentPage(1);
+                            }}
+                            className="border rounded p-1"
+                        >
+                            {[5, 10, 20, 50].map(size => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <button
+                            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-purple-600 hover:text-white cursor-pointer"
+                            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            {t("Prev")}
+                        </button>
+
+                        <div className="flex gap-2">
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <button
+                                    key={i}
+                                    className={`px-3 py-1 border rounded ${currentPage === i + 1 ? "bg-purple-600 text-white" : ""} hover:bg-purple-600 hover:text-white cursor-pointer`}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-purple-600 hover:text-white cursor-pointer"
+                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            {t("Next")}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {alert.show && (
+                <div className="absolute bottom-2 right-2">
+                    <Alert
+                        type={alert.type}
+                        message={alert.message}
+                        onClose={() => setAlert({ ...alert, show: false })}
+                    />
+                </div>
+            )}
         </div>
     );
 }

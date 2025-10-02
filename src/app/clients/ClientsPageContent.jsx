@@ -1,15 +1,19 @@
-"use client"
+"use client";
 
 import React from "react";
 import DataTable from "@/components/DataTable";
-import { clientsData, tableColumns } from "@/constants";
+import { clientsData, getTableColumns } from "@/constants";
+import { useTranslation } from "react-i18next";
 
-export default function ClientsPageContent() {
+export default function CampaignPageContent() {
+    const { t } = useTranslation();
+    const columns = getTableColumns(t);
+
     return (
         <DataTable
             initialData={clientsData}
-            columns={tableColumns}
-            title="Client"
+            columns={columns}
+            title="Clients"
         />
-    )
+    );
 }

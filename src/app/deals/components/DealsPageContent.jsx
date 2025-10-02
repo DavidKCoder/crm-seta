@@ -4,17 +4,16 @@ import { dealsData, getDealsColumnsForRole } from "@/constants";
 import { useState } from "react";
 import { getStatusColor } from "@/constants/colors/statusColors";
 import { TbCurrencyDram } from "react-icons/tb";
-import { FiEdit2, FiMail, FiTrash, FiPhone } from "react-icons/fi";
 import DealModal from "@/app/deals/components/DealModal";
 import { StatusDropdown } from "@/app/deals/components/StatusDropdown";
-import { BiDotsVerticalRounded } from "react-icons/bi";
-import Image from "next/image";
-import { DealActions } from "@/app/deals/components/DealActions";
+import { useTranslation } from "react-i18next";
+import { DealCard } from "@/app/deals/components/DealCard";
 
 const USER_ROLE = process.env.NEXT_PUBLIC_CURRENT_USER;
 const AVAILABLE_STATUSES = getDealsColumnsForRole(USER_ROLE);
 
 export default function DealsPageContent() {
+    const { t } = useTranslation();
     const [deals, setDeals] = useState(dealsData);
     const [editingDeal, setEditingDeal] = useState(null);
     const [formData, setFormData] = useState({
@@ -74,7 +73,7 @@ export default function DealsPageContent() {
         <div className="p-0">
             <div className="flex justify-between items-center mb-6">
                 <div className="flex justify-between items-center gap-5">
-                    <h1 className="text-2xl font-bold text-gray-900">Deals</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">{t("Deals")}</h1>
                     <StatusDropdown
                         statuses={AVAILABLE_STATUSES}
                         selectedStatuses={selectedStatuses}
@@ -97,7 +96,7 @@ export default function DealsPageContent() {
                             setShowModal(true);
                         }}
                     >
-                        Add Deal
+                        {t("Add")}
                     </button>
                 </div>
             </div>
@@ -115,7 +114,8 @@ export default function DealsPageContent() {
                         return (
                             <div
                                 key={i}
-                                className="min-w-[250px] p-1 flex flex-col gap-3"
+                                // className="w-[250px] min-w-max p-1 flex flex-col gap-3"
+                                className="min-w-max p-1 flex flex-col gap-3"
                             >
                                 <h2 className="p-2 rounded-lg bg-white text-black border border-gray-300 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -125,8 +125,9 @@ export default function DealsPageContent() {
                                     {stageDeals.length > 0 &&
                                         <div
                                             className={`text-gray-400 rounded-md px-2 py-0.5 text-xs ${getStatusColor(st)}`}>
-                                            {stageDeals.length} deals
-                                        </div>}
+                                            {stageDeals.length} {t("deals")}
+                                        </div>
+                                    }
                                 </h2>
 
                                 {stageDeals.length > 0 && (
@@ -134,16 +135,17 @@ export default function DealsPageContent() {
                                         className="border border-gray-50 bg-white shadow rounded-xl p-4 flex flex-col gap-3">
                                         <div
                                             className="text-left text-sm font-bold flex items-center gap-1 text-gray-900">
-                                            Total:
+                                            {t("Total")}
                                             <div className="flex items-center">
-                                                {totalValue.toLocaleString("en-IN")}{" "}
-                                                <TbCurrencyDram />
+                                                {totalValue.toLocaleString("en-US")} <TbCurrencyDram />
                                             </div>
-                                            / {stageDeals.length} deals
+                                            / {stageDeals.length} {t("deals")}
                                         </div>
 
+
                                         {stageDeals.map((deal, i) => (
-                                            <DealActions
+                                            <DealCard
+                                                key={i}
                                                 deal={deal}
                                                 st={st}
                                                 handleEdit={handleEdit}

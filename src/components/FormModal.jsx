@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
+import { useTranslation } from "react-i18next";
 
 const statuses = ["New", "Pending", "Approved", "Copy Writing", "Shooting", "Design", "Targeting", "Completed", "Lost"];
 
 export default function FormModal({ show, title, onClose, onSave, formState, setFormState, editingId }) {
+    const { t } = useTranslation();
     const [errors, setErrors] = useState({});
     const [mounted, setMounted] = useState(false);
 
@@ -15,10 +17,10 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
 
     const validate = () => {
         const newErrors = {};
-        if (!formState.name?.trim()) newErrors.name = "Name is required";
-        if (!formState.email?.trim()) newErrors.email = "Email is required";
-        if (!formState.phone?.trim()) newErrors.phone = "Phone is required";
-        if (!formState.status?.trim()) newErrors.status = "Status is required";
+        if (!formState.name?.trim()) newErrors.name = t("Name is required");
+        if (!formState.email?.trim()) newErrors.email = t("Email is required");
+        if (!formState.phone?.trim()) newErrors.phone = t("Phone is required");
+        if (!formState.status?.trim()) newErrors.status = t("Status is required");
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -29,7 +31,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     };
 
     const fields = [
-        "name", "email", "phone", "joiningDate", "status",
+        "name", "email", "phone", "Joining Date", "status",
         "facebook", "instagram", "website", "notes",
     ];
 
@@ -43,16 +45,15 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                     <IoMdClose size={25} />
                 </button>
 
-                <h2 className="text-xl font-semibold mb-4">{editingId ? "Edit" : "Add"} {title}</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                    {editingId ? t("Edit") : t("Add")}
+                </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {fields.map(field => (
-                        <div
-                            key={field}
-                            className={`flex flex-col ${field === "notes" ? "sm:col-span-2" : ""}`}
-                        >
+                        <div key={field} className={`flex flex-col ${field === "notes" ? "sm:col-span-2" : ""}`}>
                             <label className="block text-sm font-medium mb-1">
-                                {field[0].toUpperCase() + field.slice(1)}
+                                {t(field[0].toUpperCase() + field.slice(1))}
                             </label>
 
                             {field === "status" ? (
@@ -61,8 +62,8 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                                     value={formState.status || ""}
                                     onChange={e => setFormState({ ...formState, status: e.target.value })}
                                 >
-                                    <option value="" disabled hidden>Select status</option>
-                                    {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+                                    <option value="" disabled hidden>{t("Select status")}</option>
+                                    {statuses.map(s => <option key={s} value={s}>{t(s)}</option>)}
                                 </select>
                             ) : field === "joiningDate" ? (
                                 <input
@@ -96,10 +97,8 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                     onClick={handleSave}
                     disabled={!formState.name || !formState.email || !formState.phone || !formState.status}
                 >
-                    {editingId ? "Update" : "Save"}
+                    {editingId ? t("Update") : t("Save")}
                 </button>
-
-
             </div>
         </div>
     );

@@ -5,8 +5,7 @@ import Image from "next/image";
 import logo from "../../public/seta_logo.PNG";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { IoIosArrowDropleft, IoIosArrowDropright  } from "react-icons/io";
+import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
 
 import {
     AiOutlineUser,
@@ -16,12 +15,14 @@ import {
     AiOutlineBarChart,
 } from "react-icons/ai";
 import { canAccess } from "@/app/utils/roles";
-import { useTheme } from "@/app/hooks/useTheme";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const USER_ROLE = process.env.NEXT_PUBLIC_CURRENT_USER;
 
 export default function Sidebar() {
-    const { theme } = useTheme();
+    const { t, i18n } = useTranslation();
+
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
     const [windowWidth, setWindowWidth] = useState(0);
@@ -36,14 +37,13 @@ export default function Sidebar() {
     const sidebarWidth = collapsed ? 80 : Math.max(300, windowWidth * 0.15);
 
     const links = [
-        { href: "/clients", label: "Clients", icon: <AiOutlineUser size={20} /> },
-        { href: "/campaign", label: "Campaign", icon: <AiOutlineRocket size={20} /> },
-        { href: "/deals", label: "Deals", icon: <AiOutlineDollarCircle size={20} /> },
-        { href: "/packages", label: "Packages", icon: <AiOutlineGift size={20} /> },
-        { href: "/statistics", label: "Statistics", icon: <AiOutlineBarChart size={20} /> },
+        { href: "/clients", label: t("Clients"), icon: <AiOutlineUser size={20} /> },
+        { href: "/campaign", label: t("Campaign"), icon: <AiOutlineRocket size={20} /> },
+        { href: "/deals", label: t("Deals"), icon: <AiOutlineDollarCircle size={20} /> },
+        { href: "/packages", label: t("Packages"), icon: <AiOutlineGift size={20} /> },
+        { href: "/statistics", label: t("Statistics"), icon: <AiOutlineBarChart size={20} /> },
     ];
 
-    // Фильтруем видимые ссылки
     const visibleLinks = links.filter(link => {
         const resourceKey = link.href.replace("/", ""); // "/deals" -> "deals"
         return canAccess(USER_ROLE, resourceKey);
@@ -51,7 +51,6 @@ export default function Sidebar() {
 
     return (
         <div
-            // className="bg-[#0d042d] shadow-md min-h-screen rounded-r-2xl flex flex-col transition-all duration-300 relative flex-shrink-0"
             className="shadow-md min-h-screen rounded-r-2xl flex flex-col transition-all duration-300 relative flex-shrink-0"
             style={{ width: `${sidebarWidth}px` }}
         >
@@ -90,13 +89,17 @@ export default function Sidebar() {
                                 <span
                                     className="absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
                                 >
-                                  {link.label}
-                                </span>
+                          {link.label}
+                        </span>
                             )}
                         </li>
                     );
                 })}
             </ul>
+
+            {/* Switch language внизу */}
+            <LanguageSwitcher collapsed={collapsed} />
         </div>
+
     );
 }

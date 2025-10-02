@@ -4,11 +4,13 @@ import React, { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 import { TbCurrencyDram } from "react-icons/tb";
 import { getDealsColumnsForRole } from "@/constants";
+import { useTranslation } from "react-i18next";
 
 const USER_ROLE = process.env.NEXT_PUBLIC_CURRENT_USER;
 const AVAILABLE_STATUSES = getDealsColumnsForRole(USER_ROLE);
 
 export default function DealModal({ show, onClose, onSave, formData, setFormData, editingDeal }) {
+    const { t } = useTranslation();
     const [errors, setErrors] = useState({});
 
     useEffect(() => setErrors({}), [show]);
@@ -17,10 +19,10 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
 
     const validate = () => {
         const newErrors = {};
-        if (!formData.name?.trim()) newErrors.name = "Name is required";
-        if (!formData.email?.trim()) newErrors.email = "Email is required";
-        if (!formData.value?.trim()) newErrors.value = "Amount is required";
-        if (!formData.status?.trim()) newErrors.status = "Status is required";
+        if (!formData.name?.trim()) newErrors.name = t("Name is required");
+        if (!formData.email?.trim()) newErrors.email = t("Email is required");
+        if (!formData.value) newErrors.value = t("Amount is required");
+        if (!formData.status?.trim()) newErrors.status = t("Status is required");
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -42,16 +44,16 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                 </button>
 
                 <h2 className="text-xl font-semibold mb-4">
-                    {editingDeal ? "Edit Deal" : "Add Deal"}
+                    {editingDeal ? t("Edit Deal") : t("Add Deal")}
                 </h2>
 
                 <div className="space-y-4">
                     {/* Name */}
                     <div>
-                        <label className="block text-sm font-medium mb-1">Name</label>
+                        <label className="block text-sm font-medium mb-1">{t("Name")}</label>
                         <input
                             type="text"
-                            placeholder="Name"
+                            placeholder={t("Name")}
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className={`border p-2 w-full rounded ${errors.name ? "border-red-500" : ""}`}
@@ -61,10 +63,10 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
 
                     {/* Email */}
                     <div>
-                        <label className="block text-sm font-medium mb-1">Email</label>
+                        <label className="block text-sm font-medium mb-1">{t("Email")}</label>
                         <input
                             type="email"
-                            placeholder="Email"
+                            placeholder={t("Email")}
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className={`border p-2 w-full rounded ${errors.email ? "border-red-500" : ""}`}
@@ -74,13 +76,13 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
 
                     {/* Amount */}
                     <div className="relative">
-                        <label className="block text-sm font-medium mb-1">Amount</label>
+                        <label className="block text-sm font-medium mb-1">{t("Amount")}</label>
                         <span className="absolute left-2 top-1/2 translate-y-1 text-gray-400">
                             <TbCurrencyDram />
                         </span>
                         <input
                             type="text"
-                            placeholder="Amount"
+                            placeholder={t("Amount")}
                             value={formData.value}
                             onChange={(e) => {
                                 const digitsOnly = e.target.value.replace(/\D/g, "");
@@ -93,22 +95,25 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
 
                     {/* Status */}
                     <div>
-                        <label className="block text-sm font-medium mb-1">Stage</label>
+                        <label className="block text-sm font-medium mb-1">{t("Status")}</label>
                         <select
                             value={formData.status}
                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                             className={`border p-2 w-full rounded ${errors.status ? "border-red-500" : ""}`}
                         >
-                            {AVAILABLE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                            <option value="" className="italic text-gray-400" disabled>{t("Select status")}</option>
+                            {AVAILABLE_STATUSES.map((s) => (
+                                <option key={s} value={s}>{t(s)}</option>
+                            ))}
                         </select>
                         {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status}</p>}
                     </div>
 
                     {/* Notes */}
                     <div>
-                        <label className="block text-sm font-medium mb-1">Notes</label>
+                        <label className="block text-sm font-medium mb-1">{t("Notes")}</label>
                         <textarea
-                            placeholder="Notes"
+                            placeholder={t("Notes")}
                             value={formData.notes}
                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                             className="border p-2 w-full rounded"
@@ -120,7 +125,7 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                         className="bg-purple-400 hover:bg-purple-500 text-white px-4 py-2 rounded w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={!formData.name || !formData.email || !formData.value}
                     >
-                    {editingDeal ? "Update Deal" : "Add Deal"}
+                        {editingDeal ? t("Update Deal") : t("Add Deal")}
                     </button>
                 </div>
             </div>

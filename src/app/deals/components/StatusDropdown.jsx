@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { getStatusColor } from "@/constants/colors/statusColors";
+import { useTranslation } from "react-i18next";
 
 export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSelectedStatuses }) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -34,9 +36,10 @@ export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSe
             >
                 <span className="text-sm text-gray-700">
                     {selectedStatuses.length > 0
-                        ? `${selectedStatuses.length} selected`
-                        : "Select statuses"}
+                        ? `${selectedStatuses.length} ${t("selected")}`
+                        : t("Select statuses")}
                 </span>
+
                 <ChevronDown size={16} />
             </button>
 
@@ -55,7 +58,7 @@ export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSe
                             className="w-4 h-4 rounded border border-gray-300 cursor-pointer"
                         />
                         <span className="font-medium text-gray-800">
-                            {allSelected ? "Deselect All" : "Select All"}
+                            {allSelected ? t("Deselect All") : t("Select All")}
                         </span>
                     </label>
 
