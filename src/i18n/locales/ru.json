@@ -48,8 +48,19 @@
   "Cancel": "Отмена",
   "DeleteConfirm": "Вы уверены, что хотите удалить пакет?",
   "EnterPackageName": "Введите название пакета",
+  "Expenses": "Расходы",
+  "Deal": "Сделка",
+  "Sales Manager / PM": "Менеджер по продажам / PM",
+  "Copywriter": "Копирайтер",
+  "Designer": "Дизайнер",
+  "Targeting": "Таргетинг",
+  "Shooting": "Съёмка",
+  "Other (Notes)": "Прочее (заметки)",
 
   "dealsByStage": "Сделки по стадиям",
   "count": "Количество",
-  "value": "Значение"
+  "value": "Значение",
+
+  "Please select a deal": "Пожалуйста, выберите сделку",
+  "Select a deal": "Выберите сделку"
 }

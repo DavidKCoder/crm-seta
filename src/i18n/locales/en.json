@@ -40,6 +40,14 @@
   "Email is required": "Email is required",
   "Amount is required": "Amount is required",
   "Status is required": "Status is required",
+  "Expenses": "Expenses",
+  "Deal": "Deal",
+  "Sales Manager / PM": "Sales Manager / PM",
+  "Copywriter": "Copywriter",
+  "Designer": "Designer",
+  "Targeting": "Targeting",
+  "Shooting": "Shooting",
+  "Other (Notes)": "Other (Notes)",
 
   "AddPackage": "Add Package",
   "EditPackage": "Edit Package",
@@ -52,5 +60,8 @@
 
   "dealsByStage": "Deals by Stage",
   "count": "Count",
-  "value": "Value"
+  "value": "Value",
+
+  "Please select a deal": "Please select a deal",
+  "Select a deal": "Select a deal"
 }

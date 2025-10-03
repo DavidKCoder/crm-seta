@@ -6,7 +6,7 @@ import logo from "../../public/seta_logo.PNG";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
-
+import { TbUserDollar } from "react-icons/tb";
 import {
     AiOutlineUser,
     AiOutlineRocket,
@@ -40,6 +40,7 @@ export default function Sidebar() {
         { href: "/clients", label: t("Clients"), icon: <AiOutlineUser size={20} /> },
         { href: "/campaign", label: t("Campaign"), icon: <AiOutlineRocket size={20} /> },
         { href: "/deals", label: t("Deals"), icon: <AiOutlineDollarCircle size={20} /> },
+        { href: "/expenses", label: t("Expenses"), icon: <TbUserDollar size={20} /> },
         { href: "/packages", label: t("Packages"), icon: <AiOutlineGift size={20} /> },
         { href: "/statistics", label: t("Statistics"), icon: <AiOutlineBarChart size={20} /> },
     ];

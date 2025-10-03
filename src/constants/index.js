@@ -613,6 +613,18 @@ export const dealsData = [
     },
 ];
 
+export const expensesColumns = [
+    { key: "dealId", label: "Deal", sortable: true },
+    { key: "salesManager", label: "Sales Manager / PM", sortable: true },
+    { key: "copyWriter", label: "Copywriter", sortable: true },
+    { key: "designer", label: "Designer", sortable: true },
+    { key: "targeting", label: "Targeting", sortable: true },
+    { key: "shooting", label: "Shooting", sortable: true },
+    { key: "other", label: "Other (Notes)", sortable: false },
+    { key: "total", label: "Total", sortable: true },
+    { key: "action", label: "Action", sortable: false },
+];
+
 export const rolesConfig = {
     Admin: { access: ["all"] },
     Manager: { access: ["all"] },

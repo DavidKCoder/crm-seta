@@ -9,7 +9,7 @@ import { TbCurrencyDram } from "react-icons/tb";
 const initialPackages = [
     {
         id: 1,
-        title: "Սկզբնական SMM",
+        title: "Սկզբնական",
         price: 9900,
         services: [
             "Շաբաթական 3 հրապարակում",
@@ -19,7 +19,7 @@ const initialPackages = [
     },
     {
         id: 2,
-        title: "Բիզնես SMM",
+        title: "Բիզնես",
         price: 14800,
         services: [
             "Շաբաթական 5 հրապարակում",
@@ -30,7 +30,7 @@ const initialPackages = [
     },
     {
         id: 3,
-        title: "Պրեմիում SMM",
+        title: "Պրեմիում",
         price: 35000,
         services: [
             "Ամենօրյա հրապարակումներ",

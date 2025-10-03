@@ -48,8 +48,19 @@
   "Cancel": "Չեղարկել",
   "DeleteConfirm": "Վստահ ե՞ք, որ ուզում եք ջնջել այս փաթեթը։",
   "EnterPackageName": "Խնդրում ենք մուտքագրել փաթեթի անունը",
+  "Expenses": "Ծախսեր",
+  "Deal": "Գործարք",
+  "Sales Manager / PM": "Վաճառքի մենեջեր / PM",
+  "Copywriter": "Կոպիրայթեր",
+  "Designer": "Դիզայներ",
+  "Targeting": "Թիրախավորում",
+  "Shooting": "Լուսանկարահանում",
+  "Other (Notes)": "Այլ (նշումներ)",
 
   "dealsByStage": "Գործարքներ փուլերով",
   "count": "Քանակ",
-  "value": "Արժեք"
+  "value": "Արժեք",
+
+  "Please select a deal": "Խնդրում ենք ընտրել գործարքը",
+  "Select a deal": "Ընտրեք գործարքը"
 }

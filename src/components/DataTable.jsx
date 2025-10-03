@@ -1,22 +1,22 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { FiMail, FiEdit2, FiTrash, FiInbox } from "react-icons/fi";
+import { FiEdit2, FiInbox, FiMail, FiTrash } from "react-icons/fi";
 import { BiArrowToTop, BiArrowFromTop } from "react-icons/bi";
-import { getStatusColor } from "@/constants/colors/statusColors";
-import FormModal from "@/components/FormModal";
-import { FaFacebookF, FaGlobe, FaInstagram } from "react-icons/fa";
-import { IoMdClose } from "react-icons/io";
-import Alert from "@/components/Alert";
 import { useTranslation } from "react-i18next";
+import { usePathname } from "next/navigation";
 
-const statusOrder = [
-    "New", "Pending", "Approved", "Copy Writing", "Shooting",
-    "Design", "Targeting", "Completed", "Lost",
-];
+import FormModal from "@/components/FormModal";
+import ExpenseFormModal from "@/components/ExpenseFormModal"; // отдельный модал для расходов
+import Alert from "@/components/Alert";
+import { dealsData } from "@/constants";
+import { getStatusColor } from "@/constants/colors/statusColors";
+import { FaFacebookF, FaGlobe, FaInstagram } from "react-icons/fa";
+import { TbCurrencyDram } from "react-icons/tb";
 
 export default function DataTable({ initialData, columns, title }) {
     const { t } = useTranslation();
+    const pathname = usePathname();
     const [data, setData] = useState(initialData);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [showForm, setShowForm] = useState(false);
@@ -53,12 +53,6 @@ export default function DataTable({ initialData, columns, title }) {
         sorted.sort((a, b) => {
             let aValue = a[sortConfig.key] || "";
             let bValue = b[sortConfig.key] || "";
-
-            if (sortConfig.key === "status") {
-                aValue = statusOrder.indexOf(aValue);
-                bValue = statusOrder.indexOf(bValue);
-            }
-
             if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
             if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
             return 0;
@@ -67,7 +61,6 @@ export default function DataTable({ initialData, columns, title }) {
         return sorted;
     }, [filteredData, sortConfig]);
 
-    // Pagination logic
     const totalPages = Math.ceil(sortedData.length / itemsPerPage);
     const paginatedData = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -91,9 +84,21 @@ export default function DataTable({ initialData, columns, title }) {
         setEditingId(null);
         setShowForm(false);
 
-        setAlert({ show: true, type: "success", message: "Data saved successfully!" });
+        setAlert({ show: true, type: "success", message: t("Data saved successfully!") });
         setTimeout(() => setAlert({ ...alert, show: false }), 3000);
     };
+
+    const totals = useMemo(() => {
+        if (pathname !== "/expenses") return {};
+        return {
+            salesManager: sortedData.reduce((sum, item) => sum + (item.salesManager || 0), 0),
+            copyWriter: sortedData.reduce((sum, item) => sum + (item.copyWriter || 0), 0),
+            designer: sortedData.reduce((sum, item) => sum + (item.designer || 0), 0),
+            targeting: sortedData.reduce((sum, item) => sum + (item.targeting || 0), 0),
+            shooting: sortedData.reduce((sum, item) => sum + (item.shooting || 0), 0),
+            total: sortedData.reduce((sum, item) => sum + (item.total || 0), 0),
+        };
+    }, [data, pathname, sortedData]);
 
     return (
         <div>
@@ -107,25 +112,12 @@ export default function DataTable({ initialData, columns, title }) {
                         value={filter}
                         onChange={e => {
                             setFilter(e.target.value);
-                            setCurrentPage(1); // reset page при фильтре
+                            setCurrentPage(1);
                         }}
                         className="border p-2 rounded w-64 pr-8 text-gray-900 border-gray-800"
                     />
                 </div>
                 <div className="flex gap-2 items-center">
-                    <div className="relative">
-                        {filter && (
-                            <IoMdClose
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-700"
-                                size={20}
-                                onClick={() => {
-                                    setFilter("");
-                                    setCurrentPage(1);
-                                }}
-                            />
-                        )}
-                    </div>
-
                     <button
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer"
                         onClick={() => {
@@ -139,19 +131,6 @@ export default function DataTable({ initialData, columns, title }) {
                 </div>
             </div>
 
-            {/* Modal */}
-            {showForm && (
-                <FormModal
-                    show={showForm}
-                    title={title}
-                    onClose={() => setShowForm(false)}
-                    onSave={handleSave}
-                    formState={formState}
-                    setFormState={setFormState}
-                    editingId={editingId}
-                />
-            )}
-
             {/* Table */}
             <div className="overflow-x-auto rounded-lg shadow border border-gray-200 bg-white">
                 <table className="min-w-full text-sm text-left">
@@ -164,7 +143,7 @@ export default function DataTable({ initialData, columns, title }) {
                                 onClick={() => col.sortable !== false && requestSort(col.key)}
                             >
                                 <div className="flex items-center gap-1">
-                                    {col.label}
+                                    {t(col.label)}
                                     {sortConfig.key === col.key && (
                                         sortConfig.direction === "asc" ? <BiArrowToTop /> : <BiArrowFromTop />
                                     )}
@@ -230,12 +209,37 @@ export default function DataTable({ initialData, columns, title }) {
                             <td colSpan={columns.length}>
                                 <div className="flex flex-col items-center justify-center py-10 text-gray-400 h-fit">
                                     <FiInbox size={40} className="mb-3" />
-                                    <span>No data available</span>
+                                    <span>{t("No data available")}</span>
                                 </div>
                             </td>
                         </tr>
                     )}
                     </tbody>
+
+                    {/*Footer с totals только на /expenses*/}
+                    {pathname === "/expenses" && (
+                        <tfoot className="bg-gray-100 font-semibold text-gray-700">
+                        <tr>
+                            <td className="p-3">{t("Total")}</td>
+                            {["salesManager", "copyWriter", "designer", "targeting", "shooting"].map(key => (
+                                <td key={key} className="p-3">
+                                    <div className="flex items-center gap-0.5">
+                                        {totals[key]}
+                                        <TbCurrencyDram />
+                                    </div>
+                                </td>
+                            ))}
+                            <td className="p-3" />
+                            <td className="p-3">
+                                <div className="flex items-center gap-0.5">
+                                    {totals.total}
+                                    <TbCurrencyDram />
+                                </div>
+                            </td>
+                            <td className="p-3" />
+                        </tr>
+                        </tfoot>
+                    )}
                 </table>
             </div>
 
@@ -257,7 +261,6 @@ export default function DataTable({ initialData, columns, title }) {
                             ))}
                         </select>
                     </div>
-
                     <div className="flex items-center gap-4">
                         <button
                             className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-purple-600 hover:text-white cursor-pointer"
@@ -266,7 +269,6 @@ export default function DataTable({ initialData, columns, title }) {
                         >
                             {t("Prev")}
                         </button>
-
                         <div className="flex gap-2">
                             {Array.from({ length: totalPages }, (_, i) => (
                                 <button
@@ -278,7 +280,6 @@ export default function DataTable({ initialData, columns, title }) {
                                 </button>
                             ))}
                         </div>
-
                         <button
                             className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-purple-600 hover:text-white cursor-pointer"
                             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
@@ -298,6 +299,32 @@ export default function DataTable({ initialData, columns, title }) {
                         onClose={() => setAlert({ ...alert, show: false })}
                     />
                 </div>
+            )}
+
+            {/* Modal */}
+            {showForm && (
+                pathname === "/expenses" ? (
+                    <ExpenseFormModal
+                        show={showForm}
+                        title={title}
+                        onClose={() => setShowForm(false)}
+                        onSave={handleSave}
+                        formState={formState}
+                        setFormState={setFormState}
+                        editingId={editingId}
+                        dealsList={dealsData}
+                    />
+                ) : (
+                    <FormModal
+                        show={showForm}
+                        title={title}
+                        onClose={() => setShowForm(false)}
+                        onSave={handleSave}
+                        formState={formState}
+                        setFormState={setFormState}
+                        editingId={editingId}
+                    />
+                )
             )}
         </div>
     );
