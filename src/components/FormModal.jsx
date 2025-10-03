@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 import { useTranslation } from "react-i18next";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const statuses = ["New", "Pending", "Approved", "Copy Writing", "Shooting", "Design", "Targeting", "Completed", "Lost"];
 
@@ -56,7 +58,20 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                                 {t(field[0].toUpperCase() + field.slice(1))}
                             </label>
 
-                            {field === "status" ? (
+
+                            {field === "Joining Date" ? (
+                                <DatePicker
+                                    selected={formState.joiningDate ? new Date(formState.joiningDate) : null}
+                                    onChange={(date) =>
+                                        setFormState({
+                                            ...formState,
+                                            joiningDate: date ? date.toISOString().split("T")[0] : "",
+                                        })
+                                    }
+                                    className="border p-2 w-full rounded cursor-pointer"
+                                    dateFormat="yyyy-MM-dd"
+                                />
+                            ) : field === "status" ? (
                                 <select
                                     className={`border p-2 w-full rounded ${errors.status ? "border-red-500" : ""}`}
                                     value={formState.status || ""}

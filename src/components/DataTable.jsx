@@ -99,19 +99,21 @@ export default function DataTable({ initialData, columns, title }) {
         <div>
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl text-gray-900 font-bold">{t(title)}</h1>
+                <div className="flex items-center gap-10">
+                    <h1 className="text-2xl text-gray-900 font-bold">{t(title)}</h1>
+                    <input
+                        type="text"
+                        placeholder={`${t("Search")}...`}
+                        value={filter}
+                        onChange={e => {
+                            setFilter(e.target.value);
+                            setCurrentPage(1); // reset page при фильтре
+                        }}
+                        className="border p-2 rounded w-64 pr-8 text-gray-900 border-gray-800"
+                    />
+                </div>
                 <div className="flex gap-2 items-center">
                     <div className="relative">
-                        <input
-                            type="text"
-                            placeholder={`${t("Filter")}...`}
-                            value={filter}
-                            onChange={e => {
-                                setFilter(e.target.value);
-                                setCurrentPage(1); // reset page при фильтре
-                            }}
-                            className="border p-2 rounded w-64 pr-8 text-gray-900 border-gray-800"
-                        />
                         {filter && (
                             <IoMdClose
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-700"

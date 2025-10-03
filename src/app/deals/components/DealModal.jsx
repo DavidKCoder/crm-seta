@@ -35,7 +35,7 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 text-gray-800">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
                 <button
                     className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 cursor-pointer"
                     onClick={onClose}
@@ -43,11 +43,11 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                     <IoMdClose size={25} />
                 </button>
 
-                <h2 className="text-xl font-semibold mb-4">
+                <h2 className="text-xl font-semibold mb-6">
                     {editingDeal ? t("Edit Deal") : t("Add Deal")}
                 </h2>
 
-                <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                     {/* Name */}
                     <div>
                         <label className="block text-sm font-medium mb-1">{t("Name")}</label>
@@ -77,7 +77,7 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                     {/* Amount */}
                     <div className="relative">
                         <label className="block text-sm font-medium mb-1">{t("Amount")}</label>
-                        <span className="absolute left-2 top-1/2 translate-y-1 text-gray-400">
+                        <span className="absolute left-2 top-9 text-gray-400">
                             <TbCurrencyDram />
                         </span>
                         <input
@@ -109,8 +109,44 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                         {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status}</p>}
                     </div>
 
-                    {/* Notes */}
+                    {/* Instagram */}
                     <div>
+                        <label className="block text-sm font-medium mb-1">Instagram</label>
+                        <input
+                            type="text"
+                            placeholder="@username"
+                            value={formData.instagram || ""}
+                            onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                            className="border p-2 w-full rounded"
+                        />
+                    </div>
+
+                    {/* Facebook */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Facebook</label>
+                        <input
+                            type="text"
+                            placeholder="@username"
+                            value={formData.facebook || ""}
+                            onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                            className="border p-2 w-full rounded"
+                        />
+                    </div>
+
+                    {/* Website */}
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium mb-1">Website</label>
+                        <input
+                            type="text"
+                            placeholder="https://..."
+                            value={formData.website || ""}
+                            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                            className="border p-2 w-full rounded"
+                        />
+                    </div>
+
+                    {/* Notes */}
+                    <div className="col-span-2">
                         <label className="block text-sm font-medium mb-1">{t("Notes")}</label>
                         <textarea
                             placeholder={t("Notes")}
@@ -120,13 +156,16 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                         />
                     </div>
 
-                    <button
-                        onClick={handleSave}
-                        className="bg-purple-400 hover:bg-purple-500 text-white px-4 py-2 rounded w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={!formData.name || !formData.email || !formData.value}
-                    >
-                        {editingDeal ? t("Update Deal") : t("Add Deal")}
-                    </button>
+                    {/* Button */}
+                    <div className="col-span-2">
+                        <button
+                            onClick={handleSave}
+                            className="bg-purple-400 hover:bg-purple-500 text-white px-4 py-2 rounded w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!formData.name || !formData.email || !formData.value}
+                        >
+                            {editingDeal ? t("Update Deal") : t("Add Deal")}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -21,6 +21,9 @@ export default function DealsPageContent() {
         email: "",
         value: "",
         status: "New",
+        instagram: "",
+        facebook: "",
+        website: "",
         notes: "",
     });
     const [showModal, setShowModal] = useState(false);
@@ -42,7 +45,16 @@ export default function DealsPageContent() {
                 },
             ]);
         }
-        setFormData({ name: "", email: "", value: "", status: "New", notes: "" });
+        setFormData({
+            name: "",
+            email: "",
+            value: "",
+            status: "New",
+            instagram: "",
+            facebook: "",
+            website: "",
+            notes: "",
+        });
         setEditingDeal(null);
         setShowModal(false);
     };
@@ -54,6 +66,9 @@ export default function DealsPageContent() {
             email: deal.email,
             value: deal.value,
             status: deal.status,
+            instagram: deal.instagram,
+            facebook: deal.facebook,
+            website: deal.website,
             notes: deal.notes,
         });
         setShowModal(true);
@@ -91,6 +106,9 @@ export default function DealsPageContent() {
                                 email: "",
                                 value: "",
                                 status: "New",
+                                instagram: "",
+                                facebook: "",
+                                website: "",
                                 notes: "",
                             });
                             setShowModal(true);

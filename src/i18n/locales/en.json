@@ -14,6 +14,7 @@
   "Status": "Status",
   "Action": "Action",
   "Filter": "Filter",
+  "Search": "Search",
   "Edit": "Edit",
   "Add": "Add",
   "Rows per page": "Rows per page",
@@ -47,5 +48,9 @@
   "ServicesComma": "Services (comma separated)",
   "Cancel": "Cancel",
   "DeleteConfirm": "Are you sure you want to delete this package?",
-  "EnterPackageName": "Please enter a package name"
+  "EnterPackageName": "Please enter a package name",
+
+  "dealsByStage": "Deals by Stage",
+  "count": "Count",
+  "value": "Value"
 }
