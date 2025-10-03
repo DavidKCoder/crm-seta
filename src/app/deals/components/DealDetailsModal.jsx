@@ -20,7 +20,7 @@ export function DealDetailsModal({ deal, onClose }) {
                     <IoMdClose size={25} />
                 </button>
 
-                <h2 className="text-xl font-semibold mb-4">{deal.name}</h2>
+                <h2 className="text-xl text-black font-semibold mb-4">{deal.name}</h2>
 
                 <div className="space-y-3 text-gray-800">
                     <div className="flex items-center gap-2">
