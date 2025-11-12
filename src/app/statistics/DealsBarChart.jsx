@@ -11,9 +11,9 @@ import {
     ResponsiveContainer,
     Cell,
 } from "recharts";
-import { getStatusColor } from "@/constants/colors/statusColors";
 import { dealsData } from "@/constants";
 import { useTranslation } from "react-i18next";
+import { useDealStatuses } from "@/components/DealStatusesProvider";
 
 const aggregateDealsByStage = (deals) => {
     const result = {};
@@ -39,6 +39,7 @@ const aggregateDealsByStage = (deals) => {
 
 export default function DealsBarChart() {
     const { t } = useTranslation();
+    const { getStatusStyle } = useDealStatuses();
 
     const today = new Date();
     const oneMonthAgo = new Date();
@@ -135,7 +136,7 @@ export default function DealsBarChart() {
                     />
                     <Bar dataKey={mode}>
                         {dealsByStage.map((entry, index) => {
-                            const colorClass = getStatusColor(entry.stage);
+                            const colorClass = getStatusStyle(entry.stage);
                             const bgColor = colorClass.split(" ")[0].replace("bg-", "");
                             const COLORS_MAP = {
                                 "sky-50": "#0ea5e9",

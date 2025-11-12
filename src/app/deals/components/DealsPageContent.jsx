@@ -1,19 +1,22 @@
 "use client";
 
-import { dealsData, getDealsColumnsForRole } from "@/constants";
-import { useState } from "react";
-import { getStatusColor } from "@/constants/colors/statusColors";
+import { dealsData } from "@/constants";
+import { useEffect, useState } from "react";
 import { TbCurrencyDram } from "react-icons/tb";
 import DealModal from "@/app/deals/components/DealModal";
 import { StatusDropdown } from "@/app/deals/components/StatusDropdown";
 import { useTranslation } from "react-i18next";
 import { DealCard } from "@/app/deals/components/DealCard";
-
-const USER_ROLE = process.env.NEXT_PUBLIC_CURRENT_USER;
-const AVAILABLE_STATUSES = getDealsColumnsForRole(USER_ROLE);
+import { useDealStatuses } from "@/components/DealStatusesProvider";
+import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
+import { useRouter } from "next/navigation";
 
 export default function DealsPageContent() {
     const { t } = useTranslation();
+    const router = useRouter();
+    const { getStatusesForRole, getStatusStyle } = useDealStatuses();
+    const { role } = useCurrentUserRole();
+    const availableStatuses = getStatusesForRole(role);
     const [deals, setDeals] = useState(dealsData);
     const [editingDeal, setEditingDeal] = useState(null);
     const [formData, setFormData] = useState({
@@ -25,9 +28,16 @@ export default function DealsPageContent() {
         facebook: "",
         website: "",
         notes: "",
+        pdfFile: "",
+        isFinished: false,
     });
     const [showModal, setShowModal] = useState(false);
-    const [selectedStatuses, setSelectedStatuses] = useState(AVAILABLE_STATUSES);
+    const [selectedStatuses, setSelectedStatuses] = useState(availableStatuses);
+    
+
+    useEffect(() => {
+        setSelectedStatuses(availableStatuses);
+    }, [availableStatuses]);
 
     const handleAddOrUpdate = () => {
         if (editingDeal) {
@@ -54,6 +64,8 @@ export default function DealsPageContent() {
             facebook: "",
             website: "",
             notes: "",
+            pdfFile: "",
+            isFinished: false,
         });
         setEditingDeal(null);
         setShowModal(false);
@@ -70,6 +82,8 @@ export default function DealsPageContent() {
             facebook: deal.facebook,
             website: deal.website,
             notes: deal.notes,
+            pdfFile: deal.pdfFile,
+            isFinished: deal.isFinished || false,
         });
         setShowModal(true);
     };
@@ -90,7 +104,7 @@ export default function DealsPageContent() {
                 <div className="flex justify-between items-center gap-5">
                     <h1 className="text-2xl font-bold text-gray-900">{t("Deals")}</h1>
                     <StatusDropdown
-                        statuses={AVAILABLE_STATUSES}
+                        statuses={availableStatuses}
                         selectedStatuses={selectedStatuses}
                         toggleStatus={toggleStatus}
                         setSelectedStatuses={setSelectedStatuses}
@@ -98,29 +112,33 @@ export default function DealsPageContent() {
                 </div>
 
                 <div className="flex gap-4 items-center flex-wrap">
-                    <button
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg cursor-pointer"
-                        onClick={() => {
-                            setFormData({
-                                name: "",
-                                email: "",
-                                value: "",
-                                status: "New",
-                                instagram: "",
-                                facebook: "",
-                                website: "",
-                                notes: "",
-                            });
-                            setShowModal(true);
-                        }}
-                    >
-                        {t("Add")}
-                    </button>
+                    {(role === "Admin" || role === "Manager") && (
+                        <button
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg cursor-pointer"
+                            onClick={() => {
+                                setFormData({
+                                    name: "",
+                                    email: "",
+                                    value: "",
+                                    status: "New",
+                                    instagram: "",
+                                    facebook: "",
+                                    website: "",
+                                    notes: "",
+                                    pdfFile: "",
+                                    isFinished: false,
+                                });
+                                setShowModal(true);
+                            }}
+                        >
+                            {t("Add")}
+                        </button>
+                    )}
                 </div>
             </div>
 
             <div className="flex gap-4 overflow-x-auto">
-                {AVAILABLE_STATUSES
+                {availableStatuses
                     .filter((st) => selectedStatuses.includes(st))
                     .map((st, i) => {
                         const stageDeals = deals.filter((d) => d.status === st);
@@ -132,17 +150,16 @@ export default function DealsPageContent() {
                         return (
                             <div
                                 key={i}
-                                // className="w-[250px] min-w-max p-1 flex flex-col gap-3"
                                 className="min-w-max p-1 flex flex-col gap-3"
                             >
                                 <h2 className="p-2 rounded-lg bg-white text-black border border-gray-300 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full ${getStatusColor(st)}`}>{" "}</div>
+                                        <div className={`w-3 h-3 rounded-full ${getStatusStyle(st)}`}>{" "}</div>
                                         {st}
                                     </div>
                                     {stageDeals.length > 0 &&
                                         <div
-                                            className={`text-gray-400 rounded-md px-2 py-0.5 text-xs ${getStatusColor(st)}`}>
+                                            className={`text-gray-400 rounded-md px-2 py-0.5 text-xs ${getStatusStyle(st)}`}>
                                             {stageDeals.length} {t("deals")}
                                         </div>
                                     }
@@ -150,16 +167,17 @@ export default function DealsPageContent() {
 
                                 {stageDeals.length > 0 && (
                                     <div
-                                        className="border border-gray-50 bg-white shadow rounded-xl p-4 flex flex-col gap-3">
+                                        className="border border-gray-50 bg-white shadow rounded-xl p-4 flex flex-col gap-3"
+                                    >
                                         <div
-                                            className="text-left text-sm font-bold flex items-center gap-1 text-gray-900">
+                                            className="text-left text-sm font-bold flex items-center gap-1 text-gray-900"
+                                        >
                                             {t("Total")}
                                             <div className="flex items-center">
                                                 {totalValue.toLocaleString("en-US")} <TbCurrencyDram />
                                             </div>
                                             / {stageDeals.length} {t("deals")}
                                         </div>
-
 
                                         {stageDeals.map((deal, i) => (
                                             <DealCard

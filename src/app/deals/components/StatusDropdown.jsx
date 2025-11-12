@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
-import { getStatusColor } from "@/constants/colors/statusColors";
 import { useTranslation } from "react-i18next";
+import { useDealStatuses } from "@/components/DealStatusesProvider";
 
 export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSelectedStatuses }) {
     const { t } = useTranslation();
+    const { getStatusStyle } = useDealStatuses();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -71,9 +72,9 @@ export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSe
                                 type="checkbox"
                                 checked={selectedStatuses.includes(st)}
                                 onChange={() => toggleStatus(st)}
-                                className={`w-4 h-4 rounded border border-gray-300 accent-gray-100 cursor-pointer ${getStatusColor(st)}`}
+                                className={`w-4 h-4 rounded border border-gray-300 accent-gray-100 cursor-pointer ${getStatusStyle(st)}`}
                             />
-                            <span className={`px-2 py-0.5 rounded-md ${getStatusColor(st)}`}>
+                            <span className={`px-2 py-0.5 rounded-md ${getStatusStyle(st)}`}>
                                 {st}
                             </span>
                         </label>

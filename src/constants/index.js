@@ -448,7 +448,6 @@ export const getTableColumns = (t) => [
     { key: "action", label: t("Action"), sortable: false },
 ];
 
-
 export const dealsData = [
     {
         id: 201,
@@ -462,6 +461,7 @@ export const dealsData = [
         facebook: "asa",
         instagram: "as",
         website: "",
+        isFinished: false,
     },
     {
         id: 102,
@@ -476,6 +476,7 @@ export const dealsData = [
         facebook: "asd",
         instagram: "",
         website: "asd",
+        isFinished: true,
     },
     {
         id: 103,
@@ -490,6 +491,7 @@ export const dealsData = [
         facebook: "",
         instagram: "ss",
         website: "",
+        isFinished: false,
     },
     {
         id: 202,
@@ -503,6 +505,7 @@ export const dealsData = [
         facebook: "asa",
         instagram: "as",
         website: "",
+        isFinished: true,
     },
     {
         id: 205,
@@ -516,6 +519,7 @@ export const dealsData = [
         facebook: "asa",
         instagram: "as",
         website: "",
+        isFinished: false,
     },
     {
         id: 106,
@@ -530,6 +534,7 @@ export const dealsData = [
         facebook: "",
         instagram: "",
         website: "ss",
+        isFinished: false,
     },
     {
         id: 107,
@@ -544,6 +549,7 @@ export const dealsData = [
         facebook: "",
         instagram: "",
         website: "",
+        isFinished: true,
     },
     {
         id: 212,
@@ -557,6 +563,7 @@ export const dealsData = [
         facebook: "asa",
         instagram: "as",
         website: "",
+        isFinished: false,
     },
     {
         id: 209,
@@ -570,6 +577,7 @@ export const dealsData = [
         facebook: "asa",
         instagram: "as",
         website: "",
+        isFinished: false,
     },
     {
         id: 245,
@@ -583,6 +591,7 @@ export const dealsData = [
         facebook: "asa",
         instagram: "as",
         website: "",
+        isFinished: true,
     },
     {
         id: 289,
@@ -596,6 +605,7 @@ export const dealsData = [
         facebook: "asa",
         instagram: "as",
         website: "",
+        isFinished: false,
     },
     {
         id: 223,
@@ -610,6 +620,7 @@ export const dealsData = [
         facebook: "",
         instagram: "ss",
         website: "",
+        isFinished: false,
     },
 ];
 

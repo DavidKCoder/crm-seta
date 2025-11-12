@@ -3,14 +3,15 @@
 import React, { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 import { TbCurrencyDram } from "react-icons/tb";
-import { getDealsColumnsForRole } from "@/constants";
 import { useTranslation } from "react-i18next";
-
-const USER_ROLE = process.env.NEXT_PUBLIC_CURRENT_USER;
-const AVAILABLE_STATUSES = getDealsColumnsForRole(USER_ROLE);
+import { useDealStatuses } from "@/components/DealStatusesProvider";
+import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 
 export default function DealModal({ show, onClose, onSave, formData, setFormData, editingDeal }) {
     const { t } = useTranslation();
+    const { getStatusesForRole } = useDealStatuses();
+    const { role } = useCurrentUserRole();
+    const AVAILABLE_STATUSES = getStatusesForRole(role);
     const [errors, setErrors] = useState({});
 
     useEffect(() => setErrors({}), [show]);
@@ -98,7 +99,7 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                         <label className="block text-sm font-medium mb-1">{t("Status")}</label>
                         <select
                             value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, status: e.target.value, isFinished: false })}
                             className={`border p-2 w-full rounded ${errors.status ? "border-red-500" : ""}`}
                         >
                             <option value="" className="italic text-gray-400" disabled>{t("Select status")}</option>
@@ -156,6 +157,52 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                         />
                     </div>
 
+                    {/* PDF File Upload */}
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium mb-1">{t("Attach PDF")}</label>
+                        <input
+                            type="file"
+                            accept="application/pdf"
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    setFormData({ ...formData, pdfFile: file });
+                                }
+                            }}
+                            className="block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3
+                               file:rounded file:border-0 file:text-sm file:font-semibold
+                               file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 cursor-pointer"
+                        />
+                        {formData.pdfFile && (
+                            <div className="mt-2 flex items-center justify-between bg-gray-100 p-2 rounded">
+                                <span className="text-sm truncate max-w-[70%]">{formData.pdfFile.name}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, pdfFile: null })}
+                                    className="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer"
+                                >
+                                    {t("Remove")}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Is Finished Checkbox */}
+                    <div className="col-span-2">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="isFinished"
+                                checked={formData.isFinished || false}
+                                onChange={(e) => setFormData({ ...formData, isFinished: e.target.checked })}
+                                className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+                            />
+                            <label htmlFor="isFinished" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                {t("Is Finished")}
+                            </label>
+                        </div>
+                    </div>
+                    
                     {/* Button */}
                     <div className="col-span-2">
                         <button

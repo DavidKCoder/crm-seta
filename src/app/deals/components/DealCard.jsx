@@ -3,13 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { FiMail, FiEdit2, FiTrash, FiPhone } from "react-icons/fi";
-import { getStatusColor } from "@/constants/colors/statusColors";
 import { DealAvatar } from "@/app/deals/components/DealAvatar";
 import { useTranslation } from "react-i18next";
 import { DealDetailsModal } from "@/app/deals/components/DealDetailsModal";
+import { useDealStatuses } from "@/components/DealStatusesProvider";
 
 export function DealCard({ deal, st, handleEdit, handleDelete }) {
     const { t } = useTranslation();
+    const { getStatusStyle } = useDealStatuses();
     const [menuOpen, setMenuOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const menuRef = useRef(null);
@@ -31,7 +32,7 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
         <>
             <div
                 key={deal.id}
-                className={`group bg-white rounded-lg shadow p-2 flex flex-col gap-2 hover:bg-gray-50 ${getStatusColor(st)}`}
+                className={`group bg-white rounded-lg shadow p-2 flex flex-col gap-2 hover:bg-gray-50 ${getStatusStyle(st)}`}
             >
                 <div className="flex justify-between items-center relative">
                     <div className="flex flex-col space-y-1 w-full">
@@ -95,6 +96,11 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
                             className="bg-purple-100 text-purple-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm border border-purple-400">
                             #{deal.id}
                         </span>
+                        {deal.isFinished && (
+                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-sm border border-green-400">
+                                ✓ {t("Is Finished")}
+                            </span>
+                        )}
                         </div>
                     </div>
                 </div>

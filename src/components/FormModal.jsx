@@ -5,8 +5,7 @@ import { IoMdClose } from "react-icons/io";
 import { useTranslation } from "react-i18next";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-const statuses = ["New", "Pending", "Approved", "Copy Writing", "Shooting", "Design", "Targeting", "Completed", "Lost"];
+import { statuses } from "@/constants/statuses";
 
 export default function FormModal({ show, title, onClose, onSave, formState, setFormState, editingId }) {
     const { t } = useTranslation();
@@ -52,59 +51,65 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {fields.map(field => (
-                        <div key={field} className={`flex flex-col ${field === "notes" ? "sm:col-span-2" : ""}`}>
-                            <label className="block text-sm font-medium mb-1">
-                                {t(field[0].toUpperCase() + field.slice(1))}
-                            </label>
+                    {fields.map(field => {
+                        const isRequired = field === "name" || field === "email" || field === "phone" || field === "status";
+                        return (
+                            <div key={field} className={`flex flex-col ${field === "notes" ? "sm:col-span-2" : ""}`}>
+                                <label className="block text-sm font-medium mb-1">
+                                    {t(field[0].toUpperCase() + field.slice(1))}
+                                    <span className={`${isRequired ? "text-red-500" : ""}`}>
+                                    {`${isRequired ? " *" : ""}`}
+                                </span>
+                                </label>
 
 
-                            {field === "Joining Date" ? (
-                                <DatePicker
-                                    selected={formState.joiningDate ? new Date(formState.joiningDate) : null}
-                                    onChange={(date) =>
-                                        setFormState({
-                                            ...formState,
-                                            joiningDate: date ? date.toISOString().split("T")[0] : "",
-                                        })
-                                    }
-                                    className="border p-2 w-full rounded cursor-pointer"
-                                    dateFormat="yyyy-MM-dd"
-                                />
-                            ) : field === "status" ? (
-                                <select
-                                    className={`border p-2 w-full rounded ${errors.status ? "border-red-500" : ""}`}
-                                    value={formState.status || ""}
-                                    onChange={e => setFormState({ ...formState, status: e.target.value })}
-                                >
-                                    <option value="" disabled hidden>{t("Select status")}</option>
-                                    {statuses.map(s => <option key={s} value={s}>{t(s)}</option>)}
-                                </select>
-                            ) : field === "joiningDate" ? (
-                                <input
-                                    type="date"
-                                    className="border p-2 w-full rounded"
-                                    value={formState.joiningDate || ""}
-                                    onChange={e => setFormState({ ...formState, joiningDate: e.target.value })}
-                                />
-                            ) : field === "notes" ? (
-                                <textarea
-                                    className={`border p-2 w-full rounded min-h-[100px] resize-y ${errors.notes ? "border-red-500" : ""}`}
-                                    value={formState.notes || ""}
-                                    onChange={e => setFormState({ ...formState, notes: e.target.value })}
-                                />
-                            ) : (
-                                <input
-                                    type="text"
-                                    className={`border p-2 w-full rounded ${errors[field] ? "border-red-500" : ""}`}
-                                    value={formState[field] || ""}
-                                    onChange={e => setFormState({ ...formState, [field]: e.target.value })}
-                                />
-                            )}
+                                {field === "Joining Date" ? (
+                                    <DatePicker
+                                        selected={formState.joiningDate ? new Date(formState.joiningDate) : null}
+                                        onChange={(date) =>
+                                            setFormState({
+                                                ...formState,
+                                                joiningDate: date ? date.toISOString().split("T")[0] : "",
+                                            })
+                                        }
+                                        className="border p-2 w-full rounded cursor-pointer"
+                                        dateFormat="yyyy-MM-dd"
+                                    />
+                                ) : field === "status" ? (
+                                    <select
+                                        className={`border p-2 w-full rounded ${errors.status ? "border-red-500" : ""}`}
+                                        value={formState.status || ""}
+                                        onChange={e => setFormState({ ...formState, status: e.target.value })}
+                                    >
+                                        <option value="" disabled hidden>{t("Select status")}</option>
+                                        {statuses.map(s => <option key={s} value={s}>{t(s)}</option>)}
+                                    </select>
+                                ) : field === "joiningDate" ? (
+                                    <input
+                                        type="date"
+                                        className="border p-2 w-full rounded"
+                                        value={formState.joiningDate || ""}
+                                        onChange={e => setFormState({ ...formState, joiningDate: e.target.value })}
+                                    />
+                                ) : field === "notes" ? (
+                                    <textarea
+                                        className={`border p-2 w-full rounded min-h-[100px] resize-y ${errors.notes ? "border-red-500" : ""}`}
+                                        value={formState.notes || ""}
+                                        onChange={e => setFormState({ ...formState, notes: e.target.value })}
+                                    />
+                                ) : (
+                                    <input
+                                        type="text"
+                                        className={`border p-2 w-full rounded ${errors[field] ? "border-red-500" : ""}`}
+                                        value={formState[field] || ""}
+                                        onChange={e => setFormState({ ...formState, [field]: e.target.value })}
+                                    />
+                                )}
 
-                            {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
-                        </div>
-                    ))}
+                                {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
+                            </div>
+                        );
+                    })}
                 </div>
 
                 <button

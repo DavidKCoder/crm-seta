@@ -1,92 +1,145 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { FaUsers, FaBuilding, FaDollarSign, FaChartLine } from "react-icons/fa";
+import { MdOutlineLibraryBooks } from "react-icons/md";
 import {
-    LineChart,
-    Line,
+    BarChart,
+    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar,
+    Tooltip as BarTooltip,
+    Cell,
+    ResponsiveContainer as BarResponsive, ResponsiveContainer, Legend, Tooltip,
 } from "recharts";
-import DealsBarChart from "@/app/statistics/DealsBarChart";
+import {
+    AreaChart,
+    Area,
+    XAxis as AreaXAxis,
+    YAxis as AreaYAxis,
+    CartesianGrid as AreaGrid,
+    Tooltip as AreaTooltip,
+    ResponsiveContainer as AreaResponsive,
+} from "recharts";
+import {
+    PieChart,
+    Pie,
+    Cell as PieCell,
+    Tooltip as PieTooltip,
+    Legend as PieLegend,
+    ResponsiveContainer as PieResponsive,
+} from "recharts";
 import { useTranslation } from "react-i18next";
-
-const revenueData = [
-    { month: "Jan", revenue: 5000 },
-    { month: "Feb", revenue: 8000 },
-    { month: "Mar", revenue: 12000 },
-    { month: "Apr", revenue: 9000 },
-    { month: "May", revenue: 15000 },
-    { month: "Jun", revenue: 20000 },
-];
-
-const dealsByStage = [
-    { stage: "Lead", count: 5 },
-    { stage: "Contacted", count: 8 },
-    { stage: "Qualified", count: 3 },
-    { stage: "Proposal", count: 6 },
-];
-
-const revenuePieData = [
-    { name: "Jan", value: 5000 },
-    { name: "Feb", value: 8000 },
-    { name: "Mar", value: 12000 },
-    { name: "Apr", value: 9000 },
-    { name: "May", value: 15000 },
-    { name: "Jun", value: 20000 },
-];
+import DealsBarChart from "@/app/statistics/DealsBarChart";
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#a4de6c", "#d0ed57"];
 
-const totalRevenue = revenueData.reduce((sum, item) => sum + item.revenue, 0);
+// Пример данных
+const dealsData = [
+    { stage: "Lead", value: 5000 },
+    { stage: "Contacted", value: 8000 },
+    { stage: "Qualified", value: 3000 },
+    { stage: "Proposal", value: 6000 },
+];
+
+const monthlyExpenses = [
+    { month: "Jan", value: 5000 },
+    { month: "Feb", value: 8000 },
+    { month: "Mar", value: 12000 },
+    { month: "Apr", value: 9000 },
+    { month: "May", value: 15000 },
+    { month: "Jun", value: 20000 },
+];
+
+const pieExpenses = [
+    { name: "Sales Manager", value: 12000 },
+    { name: "Copywriter", value: 15000 },
+    { name: "Designer", value: 14500 },
+    { name: "Targeting", value: 8500 },
+    { name: "Shooting", value: 20000 },
+    { name: "Other", value: 5000 },
+];
 
 export default function StatisticsPageContent() {
     const { t } = useTranslation();
+
+    const cards = [
+        { value: 250, label: t("dashboardMetrics.allCustomers"), icon: <FaUsers size={35} /> },
+        { value: 120, label: t("dashboardMetrics.allCompanies"), icon: <FaBuilding size={35} /> },
+        // { value: "$85,000", label: t("dashboardMetrics.totalRevenue"), icon: <FaDollarSign size={35} /> },
+        { value: 42, label: t("dashboardMetrics.totalOrders"), icon: <MdOutlineLibraryBooks size={35} /> },
+        // { value: "15%", label: t("dashboardMetrics.growthRate"), icon: <FaChartLine size={35} /> },
+    ];
 
     return (
         <div className="space-y-6 p-6 text-gray-900">
             <h1 className="text-2xl font-bold">📊 {t("Statistics")}</h1>
 
-            {/* Верхний ряд: LineChart + BarChart */}
-            <div className="">
-                {/* LineChart */}
-                {/*<Card className="shadow rounded-2xl">*/}
-                {/*    <CardContent className="p-4">*/}
-                {/*        <h2 className="text-lg font-semibold mb-4">Revenue by month</h2>*/}
-                {/*        <ResponsiveContainer width="100%" height={300}>*/}
-                {/*            <LineChart data={revenueData}>*/}
-                {/*                <CartesianGrid strokeDasharray="3 3" />*/}
-                {/*                <XAxis dataKey="month" />*/}
-                {/*                <YAxis />*/}
-                {/*                <Tooltip />*/}
-                {/*                <Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2} />*/}
-                {/*            </LineChart>*/}
-                {/*        </ResponsiveContainer>*/}
-                {/*    </CardContent>*/}
-                {/*</Card>*/}
-                <DealsBarChart />
+            {/* Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {cards.map((card, idx) => (
+                    <div
+                        key={idx}
+                        className="w-full h-28 flex items-center justify-between shadow-xl border rounded-2xl p-4 bg-white"
+                    >
+                        <div className="block items-center text-center">
+                            <div className="text-3xl font-bold">{card.value}</div>
+                            <div className="text-lg">{card.label}</div>
+                        </div>
+                        <div className="border-2 bg-purple-400 rounded-full p-4 text-white">
+                            {card.icon}
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            {/* Средний ряд: LineChart один */}
-            {/*<Card className="shadow rounded-2xl">*/}
-            {/*    <CardContent className="p-4">*/}
-            {/*        <h2 className="text-lg font-semibold mb-4">Revenue Overview</h2>*/}
-            {/*        <p className="mb-4">Total revenue: ${totalRevenue.toLocaleString()}</p>*/}
-            {/*        <ResponsiveContainer width="100%" height={300}>*/}
-            {/*            <LineChart data={revenueData}>*/}
-            {/*                <CartesianGrid strokeDasharray="3 3" />*/}
-            {/*                <XAxis dataKey="month" />*/}
-            {/*                <YAxis />*/}
-            {/*                <Tooltip />*/}
-            {/*                <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />*/}
-            {/*            </LineChart>*/}
-            {/*        </ResponsiveContainer>*/}
-            {/*    </CardContent>*/}
-            {/*</Card>*/}
+            {/* BarChart Deals */}
+            <DealsBarChart />
+
+            {/* AreaChart Expenses */}
+            <div className="shadow rounded-2xl p-4 border bg-white">
+                <h3 className="text-lg font-semibold mb-2">{t("Expenses Over Time")}</h3>
+                <AreaResponsive width="100%" height={300}>
+                    <AreaChart data={monthlyExpenses} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <AreaXAxis dataKey="month" />
+                        <AreaYAxis />
+                        <AreaGrid strokeDasharray="3 3" />
+                        <AreaTooltip formatter={(value) => value.toLocaleString("en-EN") + " ֏"} />
+                        <Area type="monotone" dataKey="value" stroke="#8884d8" fillOpacity={1} fill="url(#colorExp)" />
+                    </AreaChart>
+                </AreaResponsive>
+            </div>
+
+            {/* PieChart Expenses */}
+            <div className="shadow rounded-2xl p-4 border bg-white w-1/2">
+                <h3 className="text-lg font-semibold mb-2">{t("Expenses by Category")}</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                        <Pie
+                            data={pieExpenses}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            label
+                        >
+                            {pieExpenses.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => value.toLocaleString("en-EN") + " ֏"} />
+                        <Legend />
+                    </PieChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 }

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { getStatusColor } from "@/constants/colors/statusColors";
 import { useTranslation } from "react-i18next";
+import { useDealStatuses } from "@/components/DealStatusesProvider";
 
 export default function DealDropdown({ dealsList, formState, setFormState }) {
     const { t } = useTranslation();
+    const { getStatusStyle } = useDealStatuses();
     const [open, setOpen] = useState(false);
 
     const handleSelect = (dealId) => {
@@ -24,7 +25,7 @@ export default function DealDropdown({ dealsList, formState, setFormState }) {
                     ? <span className="flex items-center gap-2">
                         <span>{`#${selectedDeal.id} ${selectedDeal.name}`}</span>
                         <span
-                            className={`px-2 py-0.5 rounded text-xs ${getStatusColor(selectedDeal.status)}`}>
+                            className={`px-2 py-0.5 rounded text-xs ${getStatusStyle(selectedDeal.status)}`}>
                             {selectedDeal.status}
                         </span>
                       </span>
@@ -41,7 +42,7 @@ export default function DealDropdown({ dealsList, formState, setFormState }) {
                             className="px-3 py-2 cursor-pointer hover:bg-purple-100 flex justify-between items-center"
                         >
                             <span>{`#${deal.id} ${deal.name}`}</span>
-                            <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(deal.status)}`}>
+                            <span className={`px-2 py-0.5 rounded text-xs ${getStatusStyle(deal.status)}`}>
                                 {deal.status}
                             </span>
                         </li>

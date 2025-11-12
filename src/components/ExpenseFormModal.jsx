@@ -67,7 +67,7 @@ export default function ExpenseFormModal({
                     <div>
                         <label className="block mb-1">{t("Deal")} ID</label>
                         <DealDropdown
-                            dealsList={dealsList}
+                            dealsList={dealsList.sort((a, b) => a.id - b.id)}
                             formState={formState}
                             setFormState={setFormState}
                         />

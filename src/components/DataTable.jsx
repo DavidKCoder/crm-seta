@@ -10,12 +10,13 @@ import FormModal from "@/components/FormModal";
 import ExpenseFormModal from "@/components/ExpenseFormModal"; // отдельный модал для расходов
 import Alert from "@/components/Alert";
 import { dealsData } from "@/constants";
-import { getStatusColor } from "@/constants/colors/statusColors";
+import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { FaFacebookF, FaGlobe, FaInstagram } from "react-icons/fa";
 import { TbCurrencyDram } from "react-icons/tb";
 
 export default function DataTable({ initialData, columns, title }) {
     const { t } = useTranslation();
+    const { getStatusStyle } = useDealStatuses();
     const pathname = usePathname();
     const [data, setData] = useState(initialData);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -78,7 +79,7 @@ export default function DataTable({ initialData, columns, title }) {
             setData(data.map(d => d.id === editingId ? { ...formState } : d));
         } else {
             const id = Math.floor(Math.random() * 100000);
-            setData([...data, { id, ...formState }]);
+            setData([{ id, ...formState }, ...data]);
         }
         setFormState({});
         setEditingId(null);
@@ -159,7 +160,7 @@ export default function DataTable({ initialData, columns, title }) {
                                 <td key={col.key} className="p-3 text-gray-900">
                                     {col.key === "status" ? (
                                         <span
-                                            className={`py-1 px-3 rounded-md font-medium text-sm ${getStatusColor(item.status)}`}>
+                                            className={`py-1 px-3 rounded-md font-medium text-sm ${getStatusStyle(item.status)}`}>
                                             {item.status}
                                         </span>
                                     ) : col.key === "social" ? (
@@ -311,7 +312,7 @@ export default function DataTable({ initialData, columns, title }) {
                         onSave={handleSave}
                         formState={formState}
                         setFormState={setFormState}
-                        editingId={editingId}
+                        editingId={editingId}Expenses
                         dealsList={dealsData}
                     />
                 ) : (

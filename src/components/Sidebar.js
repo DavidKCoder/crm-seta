@@ -14,14 +14,15 @@ import {
     AiOutlineGift,
     AiOutlineBarChart,
 } from "react-icons/ai";
-import { canAccess } from "@/app/utils/roles";
+import { useCanAccess } from "@/hooks/useCanAccess";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-
-const USER_ROLE = process.env.NEXT_PUBLIC_CURRENT_USER;
+import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 
 export default function Sidebar() {
     const { t, i18n } = useTranslation();
+    const { role } = useCurrentUserRole();
+    const { canAccess } = useCanAccess();
 
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
@@ -47,7 +48,7 @@ export default function Sidebar() {
 
     const visibleLinks = links.filter(link => {
         const resourceKey = link.href.replace("/", ""); // "/deals" -> "deals"
-        return canAccess(USER_ROLE, resourceKey);
+        return canAccess(role, resourceKey);
     });
 
     return (
@@ -96,6 +97,22 @@ export default function Sidebar() {
                         </li>
                     );
                 })}
+                {/* Manage links removed from navbar by request */}
+                {canAccess(role, "admin.dashboard") && (
+                    <li className="relative group">
+                        <Link
+                            href="/admin"
+                            className={`flex items-center gap-3 p-3 rounded-md transition-colors duration-200 font-bold ${
+                                pathname === "/admin" ? "bg-purple-400 text-white" : "hover:bg-purple-400 hover:text-white"
+                            }`}
+                        >
+                            {!collapsed && <span>{t("Admin Dashboard")}</span>}
+                            {collapsed && (
+                                <span className="text-sm">AD</span>
+                            )}
+                        </Link>
+                    </li>
+                )}
             </ul>
 
             {/* Switch language внизу */}
