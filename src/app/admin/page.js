@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useRoles } from "@/components/RolesProvider";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { useCanAccess } from "@/hooks/useCanAccess";
+import Link from "next/link";
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
@@ -37,6 +38,20 @@ export default function AdminDashboardPage() {
         <div className="p-4">
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-bold text-gray-900">{t("Admin Dashboard")}</h1>
+            </div>
+
+            {/* Quick admin actions */}
+            <div className="mb-6 flex flex-wrap gap-3">
+                {canAccess(role, "manage.roles") && (
+                    <Link href="/manage/roles" className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
+                        {t("Manage roles")}
+                    </Link>
+                )}
+                {canAccess(role, "manage.statuses") && (
+                    <Link href="/manage/statuses" className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
+                        {t("Manage statuses")}
+                    </Link>
+                )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
