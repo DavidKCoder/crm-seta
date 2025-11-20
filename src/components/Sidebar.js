@@ -13,6 +13,7 @@ import {
     AiOutlineDollarCircle,
     AiOutlineGift,
     AiOutlineBarChart,
+    AiOutlineDashboard,
 } from "react-icons/ai";
 import { useCanAccess } from "@/hooks/useCanAccess";
 import { useTranslation } from "react-i18next";
@@ -106,10 +107,8 @@ export default function Sidebar() {
                                 pathname === "/admin" ? "bg-purple-400 text-white" : "hover:bg-purple-400 hover:text-white"
                             }`}
                         >
+                            <AiOutlineDashboard size={20} />
                             {!collapsed && <span>{t("Admin Dashboard")}</span>}
-                            {collapsed && (
-                                <span className="text-sm">AD</span>
-                            )}
                         </Link>
                     </li>
                 )}

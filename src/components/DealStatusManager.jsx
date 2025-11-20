@@ -5,19 +5,39 @@ import { IoMdClose } from "react-icons/io";
 import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { useTranslation } from "react-i18next";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
+import { useDispatch } from "react-redux";
+import { apiPost } from "@/lib/apiClient";
+import { fetchStatuses } from "@/features/statuses/statusesSlice";
 
 export default function DealStatusManager({ show, onClose, deals = [] }) {
     const { statuses, addStatus, removeStatus, setStatusStyle, getStatusStyle } = useDealStatuses();
     const [newStatus, setNewStatus] = useState("");
     const { t } = useTranslation();
     const { role } = useCurrentUserRole();
+    const dispatch = useDispatch();
 
     if (!show) return null;
     if (role !== "Admin") return null;
 
-    const handleAdd = () => {
-        const ok = addStatus(newStatus);
-        if (ok) setNewStatus("");
+    const handleAdd = async () => {
+        const name = newStatus.trim();
+        if (!name) return;
+
+        try {
+            // Create status in backend for "deal" entity. Use a default color; UI color mapping is handled separately.
+            await apiPost("/api/statuses", {
+                entity: "deal",
+                name,
+                colorHex: "#2563eb",
+                isFinished: false,
+                isDefault: false,
+            });
+
+            // Refresh statuses from backend so DealStatusesProvider and forms stay in sync
+            await dispatch(fetchStatuses("deal"));
+            setNewStatus("");
+        } catch {
+        }
     };
 
     const handleRemove = (st) => {

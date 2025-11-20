@@ -1,13 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { dealsColumns as defaultStatuses } from "@/constants";
 import { useRoles } from "@/components/RolesProvider";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchStatuses } from "@/features/statuses/statusesSlice";
 
 const DealStatusesContext = createContext(null);
 
 export function DealStatusesProvider({ children }) {
-    const [statuses, setStatuses] = useState(defaultStatuses);
+    const dispatch = useDispatch();
+    const dealStatusesState = useSelector((state) => state.statuses.byEntity.deal);
+    const [statuses, setStatuses] = useState([]);
     const DEFAULT_COLOR_MAP = useMemo(() => ({
         "New": "bg-sky-50 text-sky-700 border border-sky-200",
         "Pending": "bg-amber-50 text-amber-900 border border-amber-300",
@@ -22,48 +25,25 @@ export function DealStatusesProvider({ children }) {
     const [statusColors, setStatusColors] = useState(DEFAULT_COLOR_MAP);
 
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem("deal_statuses");
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.every((s) => typeof s === "string")) {
-                    setStatuses(parsed);
-                }
-            }
-        } catch {}
-    }, []);
+        if (dealStatusesState.status === "idle") {
+            dispatch(fetchStatuses("deal"));
+        }
+    }, [dispatch, dealStatusesState.status]);
 
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem("deal_status_colors");
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && typeof parsed === "object") {
-                    setStatusColors((prev) => ({ ...prev, ...parsed }));
-                }
-            }
-        } catch {}
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        try {
-            localStorage.setItem("deal_statuses", JSON.stringify(statuses));
-        } catch {}
-    }, [statuses]);
-
-    useEffect(() => {
-        try {
-            localStorage.setItem("deal_status_colors", JSON.stringify(statusColors));
-        } catch {}
-    }, [statusColors]);
+        if (Array.isArray(dealStatusesState.items) && dealStatusesState.items.length > 0) {
+            const names = dealStatusesState.items
+                .map((s) => s.name)
+                .filter((n) => typeof n === "string" && n.trim().length > 0);
+            setStatuses(names);
+        }
+    }, [dealStatusesState.items]);
 
     const addStatus = (name) => {
         const n = String(name || "").trim();
         if (!n) return false;
         if (statuses.some((s) => s.toLowerCase() === n.toLowerCase())) return false;
         setStatuses((prev) => [...prev, n]);
-        // assign default neutral color
         setStatusColors((prev) => ({ ...prev, [n]: "bg-gray-50 text-gray-700 border border-gray-300" }));
         return true;
     };

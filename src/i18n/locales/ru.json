@@ -35,6 +35,7 @@
   "Amount": "Сумма",
   "Stage": "Этап",
   "Notes": "Заметки",
+  "Admin Dashboard": "Админ-панель",
   "Select status": "Выберите статус",
   "Name is required": "Имя обязательно",
   "Email is required": "Почта обязательна",
@@ -96,6 +97,7 @@
     "allCompanies": "Все компаний",
     "totalRevenue": "Общий доход",
     "totalOrders": "Всего заказов",
+    "totalDeals": "Всего сделок",
     "growthRate": "Темп роста"
   }
 }

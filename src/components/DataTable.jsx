@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { FiEdit2, FiInbox, FiMail, FiTrash } from "react-icons/fi";
 import { BiArrowToTop, BiArrowFromTop } from "react-icons/bi";
 import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
+import { useDispatch } from "react-redux";
 
 import FormModal from "@/components/FormModal";
 import ExpenseFormModal from "@/components/ExpenseFormModal"; // отдельный модал для расходов
 import Alert from "@/components/Alert";
 import { dealsData } from "@/constants";
 import { useDealStatuses } from "@/components/DealStatusesProvider";
+import { deleteClient } from "@/features/clients/clientsSlice";
+import { deleteCampaign } from "@/features/campaigns/campaignsSlice";
 import { FaFacebookF, FaGlobe, FaInstagram } from "react-icons/fa";
 import { TbCurrencyDram } from "react-icons/tb";
 
@@ -18,6 +21,7 @@ export default function DataTable({ initialData, columns, title }) {
     const { t } = useTranslation();
     const { getStatusStyle } = useDealStatuses();
     const pathname = usePathname();
+    const dispatch = useDispatch();
     const [data, setData] = useState(initialData);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
     const [showForm, setShowForm] = useState(false);
@@ -29,6 +33,10 @@ export default function DataTable({ initialData, columns, title }) {
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
+
+    useEffect(() => {
+        setData(initialData);
+    }, [initialData]);
 
     const requestSort = (key) => {
         if (sortConfig.key === key) {
@@ -159,10 +167,27 @@ export default function DataTable({ initialData, columns, title }) {
                             {columns.map(col => (
                                 <td key={col.key} className="p-3 text-gray-900">
                                     {col.key === "status" ? (
-                                        <span
-                                            className={`py-1 px-3 rounded-md font-medium text-sm ${getStatusStyle(item.status)}`}>
-                                            {item.status}
-                                        </span>
+                                        (() => {
+                                            const statusName = item.status?.name || item.status;
+                                            return (
+                                                <span
+                                                    className={`py-1 px-3 rounded-md font-medium text-sm ${getStatusStyle(statusName)}`}>
+                                                    {statusName}
+                                                </span>
+                                            );
+                                        })()
+                                    ) : col.key === "id" ? (
+                                        (() => {
+                                            const raw = item.id;
+                                            const shortId = raw ? String(raw).slice(0, 8) : "";
+                                            return shortId;
+                                        })()
+                                    ) : col.key === "joiningDate" ? (
+                                        (() => {
+                                            const raw = item.joiningDate;
+                                            const formatted = raw ? String(raw).slice(0, 10) : "";
+                                            return formatted;
+                                        })()
                                     ) : col.key === "social" ? (
                                         <div className="flex gap-2">
                                             {item.facebook && (
@@ -196,7 +221,15 @@ export default function DataTable({ initialData, columns, title }) {
                                             />
                                             <FiTrash
                                                 className="cursor-pointer hover:text-red-600"
-                                                onClick={() => setData(data.filter(d => d.id !== item.id))}
+                                                onClick={() => {
+                                                    if (pathname === "/clients") {
+                                                        dispatch(deleteClient(item.id));
+                                                    } else if (pathname === "/campaign") {
+                                                        dispatch(deleteCampaign(item.id));
+                                                    } else {
+                                                        setData(data.filter(d => d.id !== item.id));
+                                                    }
+                                                }}
                                             />
                                         </div>
                                     ) : (

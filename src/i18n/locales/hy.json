@@ -69,6 +69,7 @@
   "Manage statuses": "Կարգավիճակների կառավարում",
   "Log in": "Մուտք",
   "Role": "Դեր",
+  "Admin Dashboard": "Ադմինիստրատորի վահանակ",
   "Select role": "Ընտրեք դեր",
   "Manage roles": "Դերերի կառավարում",
   "Role name": "Դերի անուն",
@@ -96,6 +97,7 @@
     "allCompanies": "Բոլոր ընկերություններ",
     "totalRevenue": "Ընդհանուր եկամուտ",
     "totalOrders": "Ընդհանուր պատվերներ",
+    "totalDeals": "Ընդհանուր գործարքներ",
     "growthRate": "Աճի տեմպ"
   }
 }

@@ -4,6 +4,7 @@ import I18nProvider from "@/components/I18nProvider";
 import { DealStatusesProvider } from "@/components/DealStatusesProvider";
 import AppShell from "@/components/AppShell";
 import { RolesProvider } from "@/components/RolesProvider";
+import ReduxProvider from "@/components/ReduxProvider";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const lato = Lato({ weight: "400", variable: "--font-lato", subsets: ["latin"] });
@@ -17,6 +18,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="en">
         <body className={`${geistSans.variable} ${lato.variable}`}>
+        <ReduxProvider>
         <I18nProvider>
         <RolesProvider>
             <DealStatusesProvider>
@@ -26,6 +28,7 @@ export default function RootLayout({ children }) {
             </DealStatusesProvider>
         </RolesProvider>
         </I18nProvider>
+        </ReduxProvider>
         </body>
         </html>
     );

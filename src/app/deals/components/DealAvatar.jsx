@@ -8,12 +8,12 @@ export function DealAvatar({ deal }) {
         setAvatar(`https://i.pravatar.cc/32?img=${Math.floor(Math.random() * 70)}`);
     }, []);
 
-    if (!avatar) return null; // пока не смонтировалось, ничего не рендерим
+    if (!avatar) return null;
 
     return (
         <Image
             src={avatar}
-            alt={deal.name}
+            alt={deal?.name}
             width={32}
             height={32}
             className="rounded-full"

@@ -1,21 +1,43 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRoles } from "@/components/RolesProvider";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { useCanAccess } from "@/hooks/useCanAccess";
 import Link from "next/link";
+import { apiGet } from "@/lib/apiClient";
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
     const { roles, setRoleAccess, getRoleConfig } = useRoles();
     const { role } = useCurrentUserRole();
     const { canAccess } = useCanAccess();
+    const [backendRoles, setBackendRoles] = useState([]);
 
-    // Static resources (not hooks) to avoid conditional hook order changes
     const MODULES = ["clients", "campaign", "deals", "expenses", "packages", "statistics"];
     const ADMIN_TOOLS = ["admin.dashboard", "manage.roles", "manage.statuses"];
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadRoles = async () => {
+            try {
+                const data = await apiGet("/api/roles");
+                const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+                if (!isMounted) return;
+                const withNames = list.filter((r) => r && typeof r.name === "string" && r.name.trim().length > 0);
+                console.log("withNames", withNames);
+                setBackendRoles(withNames);
+            } catch {
+                // if backend roles fail to load, fall back to existing local rolesConfig
+                setBackendRoles([]);
+            }
+        };
+        loadRoles();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     // Only users with admin.dashboard permission may view
     if (!canAccess(role, "admin.dashboard")) return null;
@@ -43,46 +65,52 @@ export default function AdminDashboardPage() {
             {/* Quick admin actions */}
             <div className="mb-6 flex flex-wrap gap-3">
                 {canAccess(role, "manage.roles") && (
-                    <Link href="/manage/roles" className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
+                    <Link href="/manage/roles"
+                          className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
                         {t("Manage roles")}
                     </Link>
                 )}
                 {canAccess(role, "manage.statuses") && (
-                    <Link href="/manage/statuses" className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
+                    <Link href="/manage/statuses"
+                          className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
                         {t("Manage statuses")}
                     </Link>
                 )}
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-6 text-black">
                 {/* Roles x Modules */}
                 <div className="bg-white border rounded-xl p-4">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-lg font-semibold">{t("Permissions")} — {t("Modules")}</h2>
                     </div>
                     <div className="flex flex-col gap-4">
-                        {Object.keys(roles).map((r) => {
-                            const acc = roles[r]?.access || [];
+                        {backendRoles.map((name) => ({ name })).map((r) => {
+                            const roleName = r.name;
+                            const acc = roles[roleName]?.access || [];
                             const hasAll = acc.includes("all");
                             return (
-                                <div key={r} className="border rounded p-3">
+                                <div key={roleName} className="border rounded p-3">
                                     <div className="flex items-center justify-between mb-2">
-                                        <div className="font-medium">{r}</div>
+                                        <div className="font-medium">{roleName}</div>
                                         <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                                            <input type="checkbox" checked={hasAll} onChange={() => toggleAllForRole(r)} />
+                                            <input type="checkbox" checked={hasAll}
+                                                   onChange={() => toggleAllForRole(roleName)} />
                                             <span>{t("All")}</span>
                                         </label>
                                     </div>
                                     {!hasAll && (
                                         <div className="flex flex-wrap gap-2">
                                             {MODULES.map((m) => (
-                                                <label key={m} className="flex items-center gap-2 text-sm cursor-pointer">
+                                                <label key={m}
+                                                       className="flex items-center gap-2 text-sm cursor-pointer">
                                                     <input
                                                         type="checkbox"
                                                         checked={acc.includes(m)}
-                                                        onChange={() => togglePermission(r, m)}
+                                                        onChange={() => togglePermission(roleName, m)}
                                                     />
-                                                    <span className="px-2 py-0.5 rounded bg-white border text-gray-700">{m}</span>
+                                                    <span
+                                                        className="px-2 py-0.5 rounded bg-white border text-gray-700">{m}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -99,24 +127,27 @@ export default function AdminDashboardPage() {
                         <h2 className="text-lg font-semibold">{t("Permissions")} — {t("Admin tools")}</h2>
                     </div>
                     <div className="flex flex-col gap-4">
-                        {Object.keys(roles).map((r) => {
-                            const acc = roles[r]?.access || [];
+                        {(backendRoles.map((name) => ({ name }))).map((r) => {
+                            const roleName = r.name;
+                            const acc = roles[roleName]?.access || [];
                             const hasAll = acc.includes("all");
                             return (
-                                <div key={r} className="border rounded p-3">
-                                    <div className="font-medium mb-2">{r}</div>
+                                <div key={roleName} className="border rounded p-3">
+                                    <div className="font-medium mb-2">{roleName}</div>
                                     {hasAll ? (
                                         <div className="text-sm text-gray-500">{t("All")}</div>
                                     ) : (
                                         <div className="flex flex-wrap gap-2">
                                             {ADMIN_TOOLS.map((m) => (
-                                                <label key={m} className="flex items-center gap-2 text-sm cursor-pointer">
+                                                <label key={m}
+                                                       className="flex items-center gap-2 text-sm cursor-pointer">
                                                     <input
                                                         type="checkbox"
                                                         checked={acc.includes(m)}
-                                                        onChange={() => togglePermission(r, m)}
+                                                        onChange={() => togglePermission(roleName, m)}
                                                     />
-                                                    <span className="px-2 py-0.5 rounded bg-white border text-gray-700">{m}</span>
+                                                    <span
+                                                        className="px-2 py-0.5 rounded bg-white border text-gray-700">{m}</span>
                                                 </label>
                                             ))}
                                         </div>

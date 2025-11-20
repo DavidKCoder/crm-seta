@@ -5,14 +5,30 @@ import { IoMdClose } from "react-icons/io";
 import { useTranslation } from "react-i18next";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { statuses } from "@/constants/statuses";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchStatuses } from "@/features/statuses/statusesSlice";
+import { createClient, updateClient } from "@/features/clients/clientsSlice";
+import { createCampaign, updateCampaign } from "@/features/campaigns/campaignsSlice";
 
 export default function FormModal({ show, title, onClose, onSave, formState, setFormState, editingId }) {
     const { t } = useTranslation();
     const [errors, setErrors] = useState({});
     const [mounted, setMounted] = useState(false);
+    const dispatch = useDispatch();
+
+    const entity = title === "Clients" ? "client" : title === "Campaign" ? "campaign" : null;
+    const clientStatusesState = useSelector((state) => state.statuses.byEntity.client);
+    const campaignStatusesState = useSelector((state) => state.statuses.byEntity.campaign);
+    const activeStatusesState = entity === "client" ? clientStatusesState : entity === "campaign" ? campaignStatusesState : null;
 
     useEffect(() => setMounted(true), []);
+
+    useEffect(() => {
+        if (!entity || !activeStatusesState) return;
+        if (activeStatusesState.status === "idle") {
+            dispatch(fetchStatuses(entity));
+        }
+    }, [dispatch, entity, activeStatusesState?.status]);
 
     if (!show || !mounted) return null;
 
@@ -26,8 +42,73 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!validate()) return;
+
+        if (entity === "client") {
+            const statusesItems = clientStatusesState?.items || [];
+            const selected = statusesItems.find((s) => s.name === formState.status);
+            if (!selected || !selected.id) {
+                setErrors((prev) => ({ ...prev, status: t("Status is required") }));
+                return;
+            }
+
+            const payload = {
+                statusId: selected.id,
+                name: formState.name,
+                email: formState.email || undefined,
+                phone: formState.phone || undefined,
+                joiningDate: formState.joiningDate || undefined,
+                notes: formState.notes || undefined,
+                facebook: formState.facebook || undefined,
+                instagram: formState.instagram || undefined,
+                website: formState.website || undefined,
+                ownerUserId: undefined,
+            };
+
+            if (editingId) {
+                await dispatch(updateClient({ id: editingId, payload }));
+            } else {
+                await dispatch(createClient(payload));
+            }
+
+            onClose();
+            return;
+        }
+
+        if (entity === "campaign") {
+            const statusesItems = campaignStatusesState?.items || [];
+            const selected = statusesItems.find((s) => s.name === formState.status);
+            if (!selected || !selected.id) {
+                setErrors((prev) => ({ ...prev, status: t("Status is required") }));
+                return;
+            }
+
+            const payload = {
+                // clientId and ownerUserId are omitted for now per requirements
+                statusId: selected.id,
+                name: formState.name,
+                email: formState.email || undefined,
+                phone: formState.phone || undefined,
+                joiningDate: formState.joiningDate || undefined,
+                notes: formState.notes || undefined,
+                facebook: formState.facebook || undefined,
+                instagram: formState.instagram || undefined,
+                website: formState.website || undefined,
+                source: formState.source || undefined,
+            };
+
+            if (editingId) {
+                await dispatch(updateCampaign({ id: editingId, payload }));
+            } else {
+                await dispatch(createCampaign(payload));
+            }
+
+            onClose();
+            return;
+        }
+
+        // Fallback: use provided onSave for non-client entities
         onSave(formState);
     };
 
@@ -82,7 +163,9 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                                         onChange={e => setFormState({ ...formState, status: e.target.value })}
                                     >
                                         <option value="" disabled hidden>{t("Select status")}</option>
-                                        {statuses.map(s => <option key={s} value={s}>{t(s)}</option>)}
+                                        {(activeStatusesState?.items || []).map((s) => (
+                                            <option key={s.id} value={s.name}>{t(s.name)}</option>
+                                        ))}
                                     </select>
                                 ) : field === "joiningDate" ? (
                                     <input

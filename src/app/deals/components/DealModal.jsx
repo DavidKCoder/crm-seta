@@ -110,6 +110,18 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                         {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status}</p>}
                     </div>
 
+                    {/* Role (optional free-text) */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">{t("Role")}</label>
+                        <input
+                            type="text"
+                            placeholder={t("Role")}
+                            value={formData.role || ""}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            className="border p-2 w-full rounded"
+                        />
+                    </div>
+
                     {/* Instagram */}
                     <div>
                         <label className="block text-sm font-medium mb-1">Instagram</label>
@@ -142,6 +154,17 @@ export default function DealModal({ show, onClose, onSave, formData, setFormData
                             placeholder="https://..."
                             value={formData.website || ""}
                             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                            className="border p-2 w-full rounded"
+                        />
+                    </div>
+
+                    {/* Joining Date */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">{t("Joining Date")}</label>
+                        <input
+                            type="date"
+                            value={formData.joiningDate || ""}
+                            onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
                             className="border p-2 w-full rounded"
                         />
                     </div>

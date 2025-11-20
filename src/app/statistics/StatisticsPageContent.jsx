@@ -68,7 +68,7 @@ export default function StatisticsPageContent() {
         { value: 250, label: t("dashboardMetrics.allCustomers"), icon: <FaUsers size={35} /> },
         { value: 120, label: t("dashboardMetrics.allCompanies"), icon: <FaBuilding size={35} /> },
         // { value: "$85,000", label: t("dashboardMetrics.totalRevenue"), icon: <FaDollarSign size={35} /> },
-        { value: 42, label: t("dashboardMetrics.totalOrders"), icon: <MdOutlineLibraryBooks size={35} /> },
+        { value: 42, label: t("dashboardMetrics.totalDeals"), icon: <MdOutlineLibraryBooks size={35} /> },
         // { value: "15%", label: t("dashboardMetrics.growthRate"), icon: <FaChartLine size={35} /> },
     ];
 

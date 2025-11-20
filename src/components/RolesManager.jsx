@@ -1,27 +1,75 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 import { useRoles } from "@/components/RolesProvider";
 import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { useTranslation } from "react-i18next";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
+import { apiGet, apiPost, apiDelete } from "@/lib/apiClient";
 
 export default function RolesManager({ show, onClose }) {
     const { t } = useTranslation();
     const { roles, addRole, removeRole, setRoleAccess, getRoleConfig } = useRoles();
     const { statuses } = useDealStatuses();
     const [newRole, setNewRole] = useState("");
+    const [backendRoles, setBackendRoles] = useState([]);
+    const [loading, setLoading] = useState(false);
     const { role } = useCurrentUserRole();
 
     const MODULES = useMemo(() => ["clients", "campaign", "deals", "packages", "statistics"], []);
 
+    useEffect(() => {
+        if (!show) return;
+        let isMounted = true;
+        const loadRoles = async () => {
+            setLoading(true);
+            try {
+                const data = await apiGet("/api/roles");
+                const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+                if (!isMounted) return;
+                const withNames = list.filter((r) => r && typeof r.name === "string" && r.name.trim().length > 0);
+                setBackendRoles(withNames);
+
+                // Ensure each backend role has a local config entry for access flags
+                withNames.forEach((r) => {
+                    if (!roles[r.name]) {
+                        addRole(r.name, { access: [], restricted: [] });
+                    }
+                });
+            } catch {
+                if (!isMounted) return;
+                setBackendRoles([]);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        };
+        loadRoles();
+        return () => {
+            isMounted = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [show]);
+
     if (!show) return null;
     if (role !== "Admin") return null;
 
-    const handleAddRole = () => {
-        const ok = addRole(newRole, { access: [], restricted: [] });
-        if (ok) setNewRole("");
+    const handleAddRole = async () => {
+        const name = newRole.trim();
+        if (!name) return;
+        try {
+            const created = await apiPost("/api/roles", { name, description: null });
+            const roleData = created?.data || created;
+            // Update backend roles list
+            setBackendRoles((prev) => {
+                const exists = prev.some((r) => r.id === roleData.id);
+                return exists ? prev : [...prev, roleData];
+            });
+            // Ensure local access config exists
+            addRole(roleData.name, { access: [], restricted: [] });
+            setNewRole("");
+        } catch {
+        }
     };
 
     const toggleAccess = (roleName, key) => {
@@ -69,10 +117,14 @@ export default function RolesManager({ show, onClose }) {
                     </button>
                 </div>
 
-                {/* Roles list */}
+                {/* Roles list from backend */}
                 <div className="flex flex-col gap-3 max-h-[60vh] overflow-auto pr-1">
-                    {Object.keys(roles).map((roleName) => {
-                        const cfg = roles[roleName];
+                    {loading && backendRoles.length === 0 && (
+                        <div className="text-sm text-gray-500">{t("Loading roles...")}</div>
+                    )}
+                    {backendRoles.map((r) => {
+                        const roleName = r.name;
+                        const cfg = roles[roleName] || {};
                         const acc = cfg?.access || [];
                         const allAccess = acc.includes("all");
                         return (
@@ -82,7 +134,14 @@ export default function RolesManager({ show, onClose }) {
                                     {roleName !== "Admin" && (
                                         <button
                                             className="text-red-600 hover:text-red-700 text-sm font-medium cursor-pointer"
-                                            onClick={() => removeRole(roleName)}
+                                            onClick={async () => {
+                                                try {
+                                                    await apiDelete(`/api/roles/${r.id}`);
+                                                    setBackendRoles((prev) => prev.filter((br) => br.id !== r.id));
+                                                    removeRole(roleName);
+                                                } catch {
+                                                }
+                                            }}
                                         >
                                             {t("Remove")}
                                         </button>
