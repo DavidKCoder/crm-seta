@@ -18,21 +18,18 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const { roles } = useRoles();
     const roleOptions = Object.keys(roles || {});
-    const [tenantId, setTenantId] = useState(
-        (typeof window !== "undefined" && localStorage.getItem("tenant_id")) || ""
-    );
     const [error, setError] = useState("");
 
     const onSubmit = async (e) => {
         e.preventDefault();
         setError("");
-        if (!email || !password || !tenantId) {
+        if (!email || !password) {
             setError(t("Please fill in all fields"));
             return;
         }
 
         try {
-            const action = await dispatch(login({ email, password, tenantId }));
+            const action = await dispatch(login({ email, password }));
             if (login.rejected.match(action)) {
                 const message = action.payload || action.error?.message || t("Login failed");
                 setError(message);
@@ -72,19 +69,6 @@ export default function LoginPage() {
                             placeholder="••••••••"
                         />
                     </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm text-gray-700">{t("Tenant Id")}</label>
-                        <input
-                            type="text"
-                            value={tenantId}
-                            onChange={(e) => setTenantId(e.target.value)}
-                            className="mt-1 w-full border rounded px-3 py-2"
-                            placeholder="Tenant ID"
-                        />
-                    </div>
-                    {(error || authError) && (
-                        <div className="text-red-600 text-sm">{error || authError}</div>
-                    )}
                     <button
                         type="submit"
                         className="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg cursor-pointer disabled:opacity-60"
