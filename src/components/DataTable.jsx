@@ -271,8 +271,13 @@ export default function DataTable({
                                                     {(() => {
                                                         return item?.assignedUsers?.map((user) => {
                                                             return (
-                                                                <div key={user.id}>
+                                                                <div key={user.id} className="relative group">
                                                                     <DealAvatar deal={user} />
+                                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+                                                                                   hidden group-hover:block bg-gray-800 px-2 py-2 rounded
+                                                                                   text-white whitespace-nowrap shadow-lg">
+                                                                        {user.firstName} {user.lastName}
+                                                                    </div>
                                                                 </div>
                                                             );
                                                         });
