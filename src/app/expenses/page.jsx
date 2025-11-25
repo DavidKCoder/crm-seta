@@ -10,6 +10,7 @@ export default function ExpensesPage() {
     const [roles, setRoles] = useState([]);
     const [dynamicColumns, setDynamicColumns] = useState([]);
     const [expensesList, setExpensesList] = useState([]);
+    const [filteredExpenses, setFilteredExpenses] = useState([]);
     const [dealsList, setDealsList] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -85,6 +86,7 @@ export default function ExpensesPage() {
             if (response && Array.isArray(response.data)) {
                 const formatted = response.data.map(buildExpenseRow);
                 setExpensesList(formatted);
+                setFilteredExpenses(formatted);
             }
         } catch (err) {
             console.error("Error fetching expenses:", err);
@@ -202,6 +204,32 @@ export default function ExpensesPage() {
         }
     };
 
+    const handleDateRangeChange = ({ startDate, endDate }) => {
+        if (!startDate && !endDate) {
+            setFilteredExpenses(expensesList);
+            return;
+        }
+
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+
+        const next = expensesList.filter(expense => {
+            if (!expense.createdAt) return true;
+            const created = new Date(expense.createdAt);
+
+            if (start && created < start) return false;
+            if (end) {
+                // include the whole end day
+                const endOfDay = new Date(end);
+                endOfDay.setHours(23, 59, 59, 999);
+                if (created > endOfDay) return false;
+            }
+            return true;
+        });
+
+        setFilteredExpenses(next);
+    };
+
     if (loading) {
         return <div className="p-6">{t("Loading...")}</div>;
     }
@@ -223,7 +251,7 @@ export default function ExpensesPage() {
             )}
 
             <DataTable
-                initialData={expensesList}
+                initialData={filteredExpenses}
                 dealsList={dealsList}
                 columns={dynamicColumns}
                 title={t("Expenses")}
@@ -231,7 +259,9 @@ export default function ExpensesPage() {
                 onDelete={handleDelete}
                 roles={roles}
                 users={users}
+                onDateRangeChange={handleDateRangeChange}
             />
+
         </div>
     );
 }

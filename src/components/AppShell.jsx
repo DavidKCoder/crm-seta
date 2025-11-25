@@ -35,9 +35,9 @@ export default function AppShell({ children }) {
                 <div className="flex justify-end items-center mb-4 rounded-lg bg-purple-50 p-1.5">
                     <div className="flex items-stretch gap-2">
                         <ThemeSwitch />
-                        <div className="flex gap-2">
-                            <HeadIconButton icon={IoNotificationsOutline} badge={5} />
-                        </div>
+                        {/*<div className="flex gap-2">*/}
+                        {/*    <HeadIconButton icon={IoNotificationsOutline} badge={5} />*/}
+                        {/*</div>*/}
                         <CurrentUser />
                     </div>
                 </div>

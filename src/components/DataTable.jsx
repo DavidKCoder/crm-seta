@@ -176,7 +176,7 @@ export default function DataTable({
         <div>
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-10">
+                <div className="flex items-center gap-10 text-black">
                     <h1 className="text-2xl text-gray-900 font-bold">{t(title)}</h1>
                     <input
                         type="text"
@@ -188,10 +188,8 @@ export default function DataTable({
                         }}
                         className="border p-2 rounded w-64 pr-8 text-gray-900 border-gray-800"
                     />
-                </div>
-                <div className="flex flex-wrap gap-3 items-center justify-end text-black">
                     {onDateRangeChange && (
-                        <>
+                        <div className="flex justify-center items-center gap-x-2">
                             <div className="flex items-center gap-1 text-sm">
                                 <span>{t("From")}:</span>
                                 <input
@@ -206,14 +204,17 @@ export default function DataTable({
                                 <span>{t("To")}:</span>
                                 <input
                                     type="date"
+                                    name="trip-start"
                                     value={endDate}
                                     min={startDate || undefined}
                                     onChange={(e) => setEndDate(e.target.value)}
                                     className="border rounded px-2 py-1 text-sm"
                                 />
                             </div>
-                        </>
+                        </div>
                     )}
+                </div>
+                <div className="flex flex-wrap gap-3 items-center justify-start text-black">
                     <button
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer"
                         onClick={() => {

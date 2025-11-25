@@ -690,7 +690,7 @@ export default function DealModal({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleDownloadAttachment(attachment)}
-                                                                className="text-blue-600 hover:underline text-sm font-medium truncate block text-left"
+                                                                className="text-blue-600 hover:underline text-sm font-medium truncate block text-left cursor-pointer"
                                                                 title={attachment.fileName}
                                                             >
                                                                 {attachment.fileName}
