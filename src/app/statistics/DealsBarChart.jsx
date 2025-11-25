@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     BarChart,
     Bar,
@@ -11,31 +11,9 @@ import {
     ResponsiveContainer,
     Cell,
 } from "recharts";
-import { dealsData } from "@/constants";
 import { useTranslation } from "react-i18next";
 import { useDealStatuses } from "@/components/DealStatusesProvider";
-
-const aggregateDealsByStage = (deals) => {
-    const result = {};
-
-    deals.forEach((deal) => {
-        const status = deal.status || "Unknown";
-        const value = deal.value || 0;
-
-        if (!result[status]) {
-            result[status] = { count: 0, value: 0 };
-        }
-
-        result[status].count += 1;
-        result[status].value += value;
-    });
-
-    return Object.entries(result).map(([stage, { count, value }]) => ({
-        stage,
-        count,
-        value,
-    }));
-};
+import { apiGet } from "@/lib/apiClient";
 
 export default function DealsBarChart() {
     const { t } = useTranslation();
@@ -49,20 +27,39 @@ export default function DealsBarChart() {
     const [endDate, setEndDate] = useState(today.toISOString().split("T")[0]);
 
     const [mode, setMode] = useState("count");
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
+    useEffect(() => {
+        const fetchPipeline = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await apiGet("/api/deals/pipeline", {
+                    startDate: startDate || undefined,
+                    endDate: endDate || undefined,
+                });
+                const raw = res?.data || [];
+                const mapped = raw.map(item => ({
+                    stage: item?.status?.name || t("Unknown"),
+                    count: item?.totals?.count || 0,
+                    value: item?.totals?.value || 0,
+                }));
+                setData(mapped);
+            } catch (err) {
+                console.error("Failed to load deals pipeline:", err);
+                setError(t("Failed to load deals statistics"));
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const filteredDeals = dealsData.filter((deal) => {
-        if (!deal.joiningDate) return true; // если нет даты
-        const dealDate = new Date(deal.joiningDate);
-        if (startDate && dealDate < new Date(startDate)) return false;
-        if (endDate && dealDate > new Date(endDate)) return false;
-        return true;
-    });
-
-    const dealsByStage = aggregateDealsByStage(filteredDeals);
+        fetchPipeline();
+    }, [startDate, endDate, t]);
 
     return (
-        <div className="shadow rounded-2xl p-4 border-1">
+        <div className="shadow rounded-2xl p-4 border-1 bg-white">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">{t("dealsByStage")}</h2>
                 <div className="flex gap-2">
@@ -85,30 +82,34 @@ export default function DealsBarChart() {
                 </div>
             </div>
 
-            {/* Выбор диапазона */}
+            {/* Date range for deals chart */}
             <div className="flex gap-4 mb-4">
                 <input
                     type="date"
                     value={startDate}
+                    max={endDate || undefined}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="border rounded-md px-2 py-1 text-sm"
                 />
                 <input
                     type="date"
                     value={endDate}
+                    min={startDate || undefined}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="border rounded-md px-2 py-1 text-sm"
                 />
             </div>
 
-            {/* Сам график */}
+            {loading && <div className="text-gray-500 text-sm mb-2">{t("Loading...")}</div>}
+            {error && !loading && <div className="text-red-500 text-sm mb-2">{error}</div>}
+
             <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dealsByStage}>
+                <BarChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                         dataKey="stage"
                         tick={({ x, y, payload }) => {
-                            const words = payload.value.split(" ");
+                            const words = String(payload.value || "").split(" ");
                             return (
                                 <g transform={`translate(${x},${y + 10})`}>
                                     {words.map((word, index) => (
@@ -130,12 +131,12 @@ export default function DealsBarChart() {
                     <Tooltip
                         formatter={(value) =>
                             mode === "value"
-                                ? value.toLocaleString("en-EN") + " ֏"
+                                ? Number(value).toLocaleString("en-EN") + " ֏"
                                 : value
                         }
                     />
                     <Bar dataKey={mode}>
-                        {dealsByStage.map((entry, index) => {
+                        {data.map((entry, index) => {
                             const colorClass = getStatusStyle(entry.stage);
                             const bgColor = colorClass.split(" ")[0].replace("bg-", "");
                             const COLORS_MAP = {

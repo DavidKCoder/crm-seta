@@ -19,15 +19,15 @@ export default function RootLayout({ children }) {
         <html lang="en">
         <body className={`${geistSans.variable} ${lato.variable}`}>
         <ReduxProvider>
-        <I18nProvider>
-        <RolesProvider>
-            <DealStatusesProvider>
-                <AppShell>
-                    {children}
-                </AppShell>
-            </DealStatusesProvider>
-        </RolesProvider>
-        </I18nProvider>
+            <I18nProvider>
+                <RolesProvider>
+                    <DealStatusesProvider>
+                        <AppShell>
+                            {children}
+                        </AppShell>
+                    </DealStatusesProvider>
+                </RolesProvider>
+            </I18nProvider>
         </ReduxProvider>
         </body>
         </html>

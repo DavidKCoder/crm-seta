@@ -40,8 +40,6 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
         };
     }, []);
 
-    console.log("Deal: ", deal);
-
     const isCampaign = deal?.entity?.type === "campaign";
 
     return (

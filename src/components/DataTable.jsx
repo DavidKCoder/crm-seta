@@ -33,6 +33,9 @@ export default function DataTable({
                                       onDelete,
                                       roles = [],
                                       users = [],
+                                      onDateRangeChange,
+                                      initialStartDate,
+                                      initialEndDate,
                                   }) {
     const { t } = useTranslation();
     const pathname = usePathname();
@@ -44,6 +47,8 @@ export default function DataTable({
     const [formState, setFormState] = useState({});
     const [filter, setFilter] = useState("");
     const [alert, setAlert] = useState({ show: false, type: "success", message: "" });
+    const [startDate, setStartDate] = useState(initialStartDate || "");
+    const [endDate, setEndDate] = useState(initialEndDate || "");
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -52,6 +57,18 @@ export default function DataTable({
     useEffect(() => {
         setData(initialData);
     }, [initialData]);
+
+    useEffect(() => {
+        if (typeof onDateRangeChange === "function") {
+            // Debounce/filter to avoid invalid ranges
+            const payload = {
+                startDate: startDate || undefined,
+                endDate: endDate || undefined,
+            };
+            onDateRangeChange(payload);
+        }
+        setCurrentPage(1);
+    }, [startDate, endDate]);
 
     const requestSort = (key) => {
         if (sortConfig.key === key) {
@@ -172,7 +189,31 @@ export default function DataTable({
                         className="border p-2 rounded w-64 pr-8 text-gray-900 border-gray-800"
                     />
                 </div>
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-wrap gap-3 items-center justify-end text-black">
+                    {onDateRangeChange && (
+                        <>
+                            <div className="flex items-center gap-1 text-sm">
+                                <span>{t("From")}:</span>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    max={endDate || undefined}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="border rounded px-2 py-1 text-sm"
+                                />
+                            </div>
+                            <div className="flex items-center gap-1 text-sm">
+                                <span>{t("To")}:</span>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    min={startDate || undefined}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="border rounded px-2 py-1 text-sm"
+                                />
+                            </div>
+                        </>
+                    )}
                     <button
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer"
                         onClick={() => {

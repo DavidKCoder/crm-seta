@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DataTable from "@/components/DataTable";
 import { getTableColumns } from "@/constants";
 import { useTranslation } from "react-i18next";
@@ -15,11 +15,36 @@ export default function CampaignPageContent() {
     const status = useSelector((state) => state.campaigns.status);
     const error = useSelector((state) => state.campaigns.error);
 
+    const today = useMemo(() => new Date(), []);
+    const defaultStart = useMemo(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d.toISOString().split("T")[0];
+    }, []);
+    const defaultEnd = useMemo(() => today.toISOString().split("T")[0], [today]);
+    const [dateRange, setDateRange] = useState({ startDate: defaultStart, endDate: defaultEnd });
+
     useEffect(() => {
         if (status === "idle") {
-            dispatch(fetchCampaigns({ page: 1, limit: 100 }));
+            dispatch(fetchCampaigns({
+                page: 1,
+                limit: 100,
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate,
+            }));
         }
     }, [dispatch, status]);
+
+    useEffect(() => {
+        if (status === "succeeded" || status === "loading") {
+            dispatch(fetchCampaigns({
+                page: 1,
+                limit: 100,
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate,
+            }));
+        }
+    }, [dispatch, dateRange.startDate, dateRange.endDate]);
 
     if (status === "loading" && items.length === 0) {
         return <div>{t("Loading campaigns...")}</div>;
@@ -34,6 +59,9 @@ export default function CampaignPageContent() {
             initialData={items}
             columns={columns}
             title="Campaign"
+            onDateRangeChange={(range) => setDateRange(range)}
+            initialStartDate={dateRange.startDate}
+            initialEndDate={dateRange.endDate}
         />
     );
 }

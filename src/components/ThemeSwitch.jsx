@@ -8,10 +8,23 @@ export default function ThemeSwitch() {
     const isDark = theme === "dark";
 
     useEffect(() => {
+        // Initialize from localStorage on mount
+        const savedTheme = typeof window !== "undefined" ? localStorage.getItem("crm-theme") : null;
+        if (savedTheme === "dark" || savedTheme === "light") {
+            setTheme(savedTheme);
+        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            setTheme("dark");
+        }
+    }, []);
+
+    useEffect(() => {
         if (theme === "dark") {
             document.documentElement.classList.add("dark");
         } else {
             document.documentElement.classList.remove("dark");
+        }
+        if (typeof window !== "undefined") {
+            localStorage.setItem("crm-theme", theme);
         }
     }, [theme]);
 

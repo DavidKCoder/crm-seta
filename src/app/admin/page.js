@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useRoles } from "@/components/RolesProvider";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { useCanAccess } from "@/hooks/useCanAccess";
-import { apiGet, apiPost, apiDelete } from "@/lib/apiClient";
+import { apiGet, apiPost, apiDelete, apiPut } from "@/lib/apiClient";
 import RolesTab from "./components/RolesTab";
 import StatusesTab from "./components/StatusesTab";
 import UsersTab from "./components/UsersTab";
@@ -375,6 +375,9 @@ export default function AdminDashboardPage() {
                 <UsersTab
                     backendRoles={backendRoles}
                     apiPost={apiPost}
+                    fetchUsers={apiGet}
+                    apiPut={apiPut}
+                    apiDelete={apiDelete}
                     t={t}
                 />
             )}

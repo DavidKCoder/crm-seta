@@ -71,7 +71,7 @@ export default function DealStatusManager({ show, onClose, deals = [], inline = 
 
             <h2 className="text-xl font-semibold mb-4 text-black">{t("Manage Deal Statuses")}</h2>
 
-            <div className="space-y-2 mb-4 max-h-60 overflow-auto pr-1">
+            <div className="space-y-2 mb-4 max-h-96 overflow-auto pr-1">
                 {globalStatuses.length === 0 && (
                     <div className="text-sm text-gray-500">{t("No statuses")}</div>
                 )}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DataTable from "@/components/DataTable";
 import { getTableColumns } from "@/constants";
 import { useTranslation } from "react-i18next";
@@ -15,11 +15,36 @@ export default function ClientsPageContent() {
     const status = useSelector((state) => state.clients.status);
     const error = useSelector((state) => state.clients.error);
 
+    const today = useMemo(() => new Date(), []);
+    const defaultStart = useMemo(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d.toISOString().split("T")[0];
+    }, []);
+    const defaultEnd = useMemo(() => today.toISOString().split("T")[0], [today]);
+    const [dateRange, setDateRange] = useState({ startDate: defaultStart, endDate: defaultEnd });
+
     useEffect(() => {
         if (status === "idle") {
-            dispatch(fetchClients({ page: 1, limit: 100 }));
+            dispatch(fetchClients({
+                page: 1,
+                limit: 100,
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate,
+            }));
         }
     }, [dispatch, status]);
+
+    useEffect(() => {
+        if (status === "succeeded" || status === "loading") {
+            dispatch(fetchClients({
+                page: 1,
+                limit: 100,
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate,
+            }));
+        }
+    }, [dispatch, dateRange.startDate, dateRange.endDate]);
 
     if (status === "loading" && items.length === 0) {
         return <div>{t("Loading clients...")}</div>;
@@ -34,6 +59,9 @@ export default function ClientsPageContent() {
             initialData={items}
             columns={columns}
             title="Clients"
+            onDateRangeChange={(range) => setDateRange(range)}
+            initialStartDate={dateRange.startDate}
+            initialEndDate={dateRange.endDate}
         />
     );
 }

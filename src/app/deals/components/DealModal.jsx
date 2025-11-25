@@ -99,7 +99,7 @@ export default function DealModal({
         const hasAssignedSingle = !!formData.assignedToUserId;
         const hasAssignedMultiple = Array.isArray(formData.assignedToUserIds) && formData.assignedToUserIds.length > 0;
         if (!hasAssignedSingle && !hasAssignedMultiple) newErrors.assignedToUserId = t("Assigned User is required");
-        if (!formData.value || formData.value <= 0) newErrors.value = t("Valid value is required");
+        if (!formData.value || formData.value <= 0) newErrors.value = t("Value must be greater than zero");
         if (!formData.currency) newErrors.currency = t("Currency is required");
         if (!formData.name?.trim()) newErrors.name = t("Name is required");
         if (!formData.email?.trim()) newErrors.email = t("Email is required");
@@ -109,7 +109,6 @@ export default function DealModal({
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = t("Please enter a valid email address");
         }
-
         // Phone format validation (basic)
         if (formData.phone && !/^\+?[0-9\s-]{6,}$/.test(formData.phone)) {
             newErrors.phone = t("Please enter a valid phone number");
@@ -143,7 +142,7 @@ export default function DealModal({
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            alert("File size should be less than 5MB");
+            alert(t("File size should be less than 5MB"));
             return;
         }
 
@@ -151,7 +150,7 @@ export default function DealModal({
             file.name.toLowerCase().endsWith(".pdf");
 
         if (!isPdf) {
-            alert("Only PDF files are allowed");
+            alert(t("Only PDF files are allowed"));
             return;
         }
 
@@ -178,7 +177,7 @@ export default function DealModal({
             }
         } catch (error) {
             console.error("Error uploading file:", error);
-            alert(error.message || "Failed to upload file");
+            alert(error.message || t("Failed to upload file"));
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) {
@@ -189,7 +188,7 @@ export default function DealModal({
 
     const handleRemoveAttachment = async (attachmentId) => {
         if (!editingDeal?.id) return;
-        if (!confirm("Are you sure you want to remove this attachment?")) return;
+        if (!confirm(t("Are you sure you want to remove this attachment?"))) return;
 
         try {
             setRemovingAttachmentId(attachmentId);
@@ -197,22 +196,37 @@ export default function DealModal({
             setAttachments(prev => prev.filter(att => att.id !== attachmentId));
         } catch (error) {
             console.error("Error removing attachment:", error);
-            alert("Failed to remove attachment");
+            alert(t("Failed to remove attachment"));
         } finally {
             setRemovingAttachmentId(null);
         }
     };
+
     const getAttachmentUrl = (attachment) => {
         if (!attachment) return "#";
-        // Rely on URL returned by backend; avoid guessing API routes to prevent 404s
-        return attachment.url || attachment.fileUrl || "#";
+
+        const dealId =
+            editingDeal?.id ??
+            attachment.dealId ??
+            attachment.deal?.id;
+
+        const attachmentId =
+            attachment.id ??
+            attachment.attachmentId ??
+            attachment.fileId;
+
+        // If we still don't have IDs, fall back to whatever URL backend gave us
+        if (!dealId || !attachmentId) {
+            return attachment.downloadUrl || attachment.url || attachment.fileUrl || "#";
+        }
+
+        return `/api/deals/${dealId}/attachments/${attachmentId}/download`;
     };
 
-
     const formatFileSize = (bytes) => {
-        if (bytes === 0) return "0 Bytes";
+        if (bytes === 0) return t("0 Bytes");
         const k = 1024;
-        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const sizes = [t("Bytes"), t("KB"), t("MB"), t("GB")];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
@@ -368,16 +382,18 @@ export default function DealModal({
                                         const isChecked = Array.isArray(formData.assignedToUserIds)
                                             ? formData.assignedToUserIds.map(String).includes(normalizedId)
                                             : false;
+                                        const isActive = user?.isActive
 
                                         return (
                                             <label
                                                 key={normalizedId}
                                                 className="flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer"
                                             >
-                                                <div className="flex items-center gap-2">
+                                                <div className={`flex items-center gap-2 ${!isActive ? "text-gray-400" : ""}`}>
                                                     <input
                                                         type="checkbox"
                                                         checked={isChecked}
+                                                        disabled={!isActive}
                                                         onChange={() => toggleAssignedUser(normalizedId)}
                                                     />
                                                     <span>{displayName}</span>
@@ -406,8 +422,8 @@ export default function DealModal({
                             onChange={(e) => handleInputChange("entityType", e.target.value)}
                             className={`border p-2 w-full rounded ${errors.entityType ? "border-red-500" : ""}`}
                         >
-                            <option value="client">Client</option>
-                            <option value="campaign">Campaign</option>
+                            <option value="client">{t("Client")}</option>
+                            <option value="campaign">{t("Campaign")}</option>
                         </select>
                         {errors.entityType && <p className="text-red-500 text-xs mt-1">{errors.entityType}</p>}
                     </div>
@@ -423,8 +439,9 @@ export default function DealModal({
                             onChange={(e) => handleInputChange("entityId", e.target.value)}
                             className={`border p-2 w-full rounded ${errors.entityId ? "border-red-500" : ""}`}
                         >
-                            <option
-                                value="">Select {formData.entityType === "campaign" ? "Campaign" : "Client"}</option>
+                            <option value="">
+                                {formData.entityType === "campaign" ? t("Select Campaign") : t("Select Client")}
+                            </option>
                             {(formData.entityType === "campaign" ? campaigns : clients).map(item => (
                                 <option key={item.id} value={item.id}>
                                     {item.name}
@@ -558,7 +575,7 @@ export default function DealModal({
                         </label>
                         <input
                             type="url"
-                            placeholder="https://facebook.com/username"
+                            placeholder={t("Facebook URL placeholder")}
                             value={formData.facebook || ""}
                             onChange={(e) => handleInputChange("facebook", e.target.value)}
                             className="border p-2 w-full rounded"
@@ -571,7 +588,7 @@ export default function DealModal({
                         </label>
                         <input
                             type="url"
-                            placeholder="https://instagram.com/username"
+                            placeholder={t("Instagram URL placeholder")}
                             value={formData.instagram || ""}
                             onChange={(e) => handleInputChange("instagram", e.target.value)}
                             className="border p-2 w-full rounded"
@@ -584,7 +601,7 @@ export default function DealModal({
                         </label>
                         <input
                             type="url"
-                            placeholder="https://example.com"
+                            placeholder={t("Website URL placeholder")}
                             value={formData.website || ""}
                             onChange={(e) => handleInputChange("website", e.target.value)}
                             className="border p-2 w-full rounded"
@@ -625,7 +642,7 @@ export default function DealModal({
                                     disabled={isUploading}
                                 >
                                     <IoMdAttach className="mr-2" />
-                                    {isUploading ? "Uploading..." : "Upload PDF (Max 5MB)"}
+                                    {isUploading ? t("Uploading...") : t("Upload PDF (Max 5MB)")}
                                 </button>
                                 <p className="text-xs text-gray-500 mt-2 text-center">
                                     {t("Only PDF files are accepted")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiGet } from "@/lib/apiClient";
 import { TbCurrencyDram } from "react-icons/tb";
 import DealModal from "@/app/deals/components/DealModal";
@@ -60,11 +60,23 @@ export default function DealsPageContent() {
         setSelectedStatuses(availableStatuses);
     }, [availableStatuses]);
 
+    const today = useMemo(() => new Date(), []);
+    const defaultStart = useMemo(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d.toISOString().split("T")[0];
+    }, []);
+    const defaultEnd = useMemo(() => today.toISOString().split("T")[0], [today]);
+    const [dateRange, setDateRange] = useState({ startDate: defaultStart, endDate: defaultEnd });
+
     useEffect(() => {
-        if (dealsStatus === "idle") {
-            dispatch(fetchDeals({ page: 1, limit: 100 }));
-        }
-    }, [dispatch, dealsStatus]);
+        dispatch(fetchDeals({
+            page: 1,
+            limit: 100,
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+        }));
+    }, [dispatch, dateRange.startDate, dateRange.endDate]);
 
     // Fetch roles for assignment
     useEffect(() => {
@@ -378,6 +390,28 @@ export default function DealsPageContent() {
                         toggleStatus={toggleStatus}
                         setSelectedStatuses={setSelectedStatuses}
                     />
+                    <div className="flex flex-wrap items-center justify-between max-w-sm gap-x-2">
+                        <div className="flex items-center gap-2 text-black">
+                            <span className="text-sm">{t("From")}:</span>
+                            <input
+                                type="date"
+                                value={dateRange.startDate}
+                                max={dateRange.endDate || undefined}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                                className="border rounded-md px-2 py-1 text-sm cursor-pointer"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 text-black">
+                            <span className="text-sm text-gray-700">{t("To")}:</span>
+                            <input
+                                type="date"
+                                value={dateRange.endDate}
+                                min={dateRange.startDate || undefined}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                                className="border rounded-md px-2 py-1 text-sm cursor-pointer"
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 <div className="flex gap-4 items-center flex-wrap">
