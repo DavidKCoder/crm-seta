@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { IoMdClose, IoMdAttach } from "react-icons/io";
 import { TbCurrencyDram } from "react-icons/tb";
 import { useTranslation } from "react-i18next";
-import { apiDelete, apiGet, apiUpload } from "@/lib/apiClient";
+import { apiDelete, apiGet, apiUpload, apiDownload } from "@/lib/apiClient";
 
 export default function DealModal({
                                       show,
@@ -199,6 +199,36 @@ export default function DealModal({
             alert(t("Failed to remove attachment"));
         } finally {
             setRemovingAttachmentId(null);
+        }
+    };
+
+    const handleDownloadAttachment = async (attachment) => {
+        try {
+            const dealId =
+                editingDeal?.id ??
+                attachment.dealId ??
+                attachment.deal?.id;
+
+            const attachmentId =
+                attachment.id ??
+                attachment.attachmentId ??
+                attachment.fileId;
+
+            if (!dealId || !attachmentId) {
+                // Fallback to direct URL if available
+                if (attachment.downloadUrl || attachment.url || attachment.fileUrl) {
+                    window.open(attachment.downloadUrl || attachment.url || attachment.fileUrl, '_blank');
+                    return;
+                }
+                alert(t("Unable to download attachment: missing IDs"));
+                return;
+            }
+
+            const downloadPath = `/api/deals/${dealId}/attachments/${attachmentId}/download`;
+            await apiDownload(downloadPath, attachment.fileName || "attachment.pdf");
+        } catch (error) {
+            console.error("Error downloading attachment:", error);
+            alert(error.message || t("Failed to download attachment"));
         }
     };
 
@@ -657,14 +687,14 @@ export default function DealModal({
                                                 <div key={attachment.id} className="border rounded-lg p-3 bg-gray-50">
                                                     <div className="flex justify-between items-start">
                                                         <div className="flex-1 min-w-0">
-                                                            <a
-                                                                href={getAttachmentUrl(attachment)}
-                                                                download={attachment.fileName || "attachment.pdf"}
-                                                                className="text-blue-600 hover:underline text-sm font-medium truncate block"
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDownloadAttachment(attachment)}
+                                                                className="text-blue-600 hover:underline text-sm font-medium truncate block text-left"
                                                                 title={attachment.fileName}
                                                             >
                                                                 {attachment.fileName}
-                                                            </a>
+                                                            </button>
                                                             <div className="text-xs text-gray-500 mt-1">
                                                                 <span>{formatFileSize(attachment.fileSize)}</span>
                                                                 <span className="mx-2">•</span>

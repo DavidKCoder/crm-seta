@@ -267,3 +267,78 @@ export async function authGet(path) {
 
     return data;
 }
+
+/**
+ * Download a file from the API
+ * @param {string} path - API path (e.g., "/api/deals/123/attachments/456/download")
+ * @param {string} filename - Optional filename for the download
+ * @returns {Promise<void>}
+ */
+export async function apiDownload(path, filename = null) {
+    // Use relative URL to go through Next.js API route
+    const url = path.startsWith('/') ? path : `/${path}`;
+    
+    let res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    // Handle 401 and refresh token
+    if (res.status === 401) {
+        try {
+            await authRequest("/refresh", {});
+            res = await fetch(url, {
+                method: "GET",
+                credentials: "include",
+            });
+        } catch {
+            // fall through and let error handling surface the original 401
+        }
+    }
+
+    if (!res.ok) {
+        let errorMessage = `Download failed: ${res.status} ${res.statusText}`;
+        try {
+            const errorText = await res.text();
+            if (errorText) {
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch {
+                    errorMessage = errorText || errorMessage;
+                }
+            }
+        } catch (e) {
+            console.error('Error reading error response:', e);
+        }
+        throw new Error(errorMessage);
+    }
+
+    // Get the file as a blob
+    const blob = await res.blob();
+
+    // Get filename from Content-Disposition header or use provided/default
+    let downloadFilename = filename;
+    if (!downloadFilename) {
+        const contentDisposition = res.headers.get('content-disposition');
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (filenameMatch && filenameMatch[1]) {
+                downloadFilename = filenameMatch[1].replace(/['"]/g, '');
+            }
+        }
+    }
+    if (!downloadFilename) {
+        downloadFilename = 'download';
+    }
+
+    // Create a temporary URL and trigger download
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = downloadFilename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+}
