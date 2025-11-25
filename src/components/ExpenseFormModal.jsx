@@ -109,7 +109,9 @@ export default function ExpenseFormModal({
         }
 
         // Prepare the data for submission
+        console.log('formState', formState);
         const expenseData = {
+            id: formState.id,
             dealId: formState.dealId,
             items: validItems.map((item) => ({
                 roleId: item.roleId,
