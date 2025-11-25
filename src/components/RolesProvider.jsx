@@ -17,13 +17,15 @@ export function RolesProvider({ children }) {
                     setRoles((prev) => ({ ...prev, ...parsed }));
                 }
             }
-        } catch {}
+        } catch {
+        }
     }, []);
 
     useEffect(() => {
         try {
             localStorage.setItem("roles_config", JSON.stringify(roles));
-        } catch {}
+        } catch {
+        }
     }, [roles]);
 
     const addRole = (name, config = { access: [], restricted: [] }) => {
@@ -59,7 +61,7 @@ export function RolesProvider({ children }) {
 
     const value = useMemo(
         () => ({ roles, addRole, removeRole, setRoleAccess, setRoleRestricted, getRoleConfig }),
-        [roles]
+        [roles],
     );
 
     return <RolesContext.Provider value={value}>{children}</RolesContext.Provider>;

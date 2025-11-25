@@ -9,7 +9,7 @@ const DealStatusesContext = createContext(null);
 
 export function DealStatusesProvider({ children }) {
     const dispatch = useDispatch();
-    const dealStatusesState = useSelector((state) => state.statuses.byEntity.deal);
+    const dealStatusesState = useSelector((state) => state.statuses);
     const [statuses, setStatuses] = useState([]);
     const DEFAULT_COLOR_MAP = useMemo(() => ({
         "New": "bg-sky-50 text-sky-700 border border-sky-200",

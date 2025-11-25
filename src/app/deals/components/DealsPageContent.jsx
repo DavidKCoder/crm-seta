@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/apiClient";
 import { TbCurrencyDram } from "react-icons/tb";
 import DealModal from "@/app/deals/components/DealModal";
 import { StatusDropdown } from "@/app/deals/components/StatusDropdown";
@@ -10,8 +11,9 @@ import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDeals, createDeal, updateDeal, deleteDeal } from "@/features/deals/dealsSlice";
+import { fetchDeals, fetchDealById, createDeal, updateDeal, deleteDeal } from "@/features/deals/dealsSlice";
 import { fetchClients } from "@/features/clients/clientsSlice";
+import { fetchCampaigns } from "@/features/campaigns/campaignsSlice";
 
 export default function DealsPageContent() {
     const { t } = useTranslation();
@@ -25,8 +27,10 @@ export default function DealsPageContent() {
     const dealsError = useSelector((state) => state.deals.error);
     const clients = useSelector((state) => state.clients.items);
     const clientsStatus = useSelector((state) => state.clients.status);
+    const campaigns = useSelector((state) => state.campaigns.items);
+    const campaignsStatus = useSelector((state) => state.campaigns.status);
     const authUser = useSelector((state) => state.auth.user);
-    const dealStatusesState = useSelector((state) => state.statuses.byEntity.deal);
+    const dealStatusesState = useSelector((state) => state.statuses);
     const [selectedStatuses, setSelectedStatuses] = useState(availableStatuses);
 
     const [showModal, setShowModal] = useState(false);
@@ -44,7 +48,13 @@ export default function DealsPageContent() {
         joiningDate: "",
         isFinished: false,
         pdfFile: null,
+        assignedToUserId: "",
+        assignedToUserIds: [],
     });
+
+    const [roles, setRoles] = useState([]);
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
 
     useEffect(() => {
         setSelectedStatuses(availableStatuses);
@@ -56,11 +66,33 @@ export default function DealsPageContent() {
         }
     }, [dispatch, dealsStatus]);
 
+    // Fetch roles for assignment
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await apiGet("/api/roles");
+                if (response && Array.isArray(response.data)) {
+                    setRoles(response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error);
+            }
+        };
+
+        fetchRoles();
+    }, []);
+
     useEffect(() => {
         if (clientsStatus === "idle") {
             dispatch(fetchClients({ page: 1, limit: 100 }));
         }
     }, [dispatch, clientsStatus]);
+
+    useEffect(() => {
+        if (campaignsStatus === "idle") {
+            dispatch(fetchCampaigns({ page: 1, limit: 100 }));
+        }
+    }, [dispatch, campaignsStatus]);
 
     const resetForm = () => {
         setFormData({
@@ -76,35 +108,128 @@ export default function DealsPageContent() {
             joiningDate: "",
             isFinished: false,
             pdfFile: null,
+            assignedToUserId: "",
+            assignedToUserIds: [],
         });
         setEditingDeal(null);
     };
 
     const handleOpenAdd = () => {
         resetForm();
+
+        // Set default values
+        const defaultValues = {
+            entityType: "client",
+            currency: "AMD",
+            entityId: "", // No default entity selected
+            assignedToUserId: "", // Initialize with empty string
+            assignedToUserIds: [],
+        };
+
+        // If statuses are available, select the first one
         if (availableStatuses && availableStatuses.length > 0) {
-            setFormData((prev) => ({ ...prev, status: availableStatuses[0] }));
+            defaultValues.statusId = availableStatuses[0].id;
         }
+
+        setFormData(prev => ({
+            ...prev,
+            ...defaultValues,
+        }));
+
         setShowModal(true);
     };
 
-    const handleEdit = (deal) => {
-        setEditingDeal(deal);
-        setFormData({
-            name: deal.name || "",
-            email: deal.email || "",
-            value: deal.value != null ? String(deal.value) : "",
-            status: deal.status?.name || deal.status || "",
-            role: deal.role || "",
-            instagram: deal.instagram || "",
-            facebook: deal.facebook || "",
-            website: deal.website || "",
-            notes: deal.notes || "",
-            joiningDate: deal.joiningDate ? String(deal.joiningDate).split("T")[0] : "",
-            isFinished: !!deal.isFinished,
-            pdfFile: null,
-        });
-        setShowModal(true);
+    const handleEdit = async (deal) => {
+        try {
+            // First set the editing deal to show loading state if needed
+            setEditingDeal(deal);
+
+            // Fetch the latest deal data
+            const result = await dispatch(fetchDealById(deal.id)).unwrap();
+
+            // Extract data from the nested structure
+            const entityType = result.entity?.type || "client";
+            const entityId = result.entity?.id || "";
+            const statusId = result.status?.id || "";
+
+            // Format the joining date
+            const formatDate = (dateString) => {
+                if (!dateString) return "";
+                try {
+                    // Ensure consistent date format for both server and client
+                    const date = new Date(dateString);
+                    if (isNaN(date.getTime())) return "";
+                    return date.toISOString().split("T")[0];
+                } catch (e) {
+                    console.error("Error formatting date:", e);
+                    return "";
+                }
+            };
+
+            // Helper function to safely extract string values
+            const safeString = (value, defaultValue = "") => {
+                if (value === null || value === undefined) return defaultValue;
+                if (typeof value === "object") return JSON.stringify(value);
+                return String(value);
+            };
+
+            const assignedUsersArray = Array.isArray(result?.assignedUsers)
+                ? result.assignedUsers
+                : [];
+            const assignedUserIdsFromUsers = assignedUsersArray
+                .map(user => safeString(user?.id))
+                .filter(Boolean);
+            const assignedUserIdsFromResponse = Array.isArray(result?.assignedToUserIds)
+                ? result.assignedToUserIds.map(id => safeString(id)).filter(Boolean)
+                : [];
+            const resolvedAssignedIds = assignedUserIdsFromResponse.length > 0
+                ? assignedUserIdsFromResponse
+                : (assignedUserIdsFromUsers.length > 0
+                    ? assignedUserIdsFromUsers
+                    : (result?.assignedTo?.id ? [safeString(result.assignedTo.id)] : []));
+
+            // Create a clean form data object with only the fields we need
+            const cleanFormData = {
+                // Basic fields
+                id: safeString(result?.id),
+                name: safeString(result?.name),
+                email: safeString(result?.email),
+                phone: safeString(result?.phone),
+                value: safeString(result?.value, "0"),
+                currency: safeString(result?.currency, "USD"),
+                notes: safeString(result?.notes),
+                facebook: safeString(result?.facebook),
+                instagram: safeString(result?.instagram),
+                website: safeString(result?.website),
+                isFinished: Boolean(result?.isFinished),
+
+                // Processed fields - ensure they're always strings
+                entityType: safeString(entityType),
+                entityId: safeString(entityId),
+                statusId: safeString(statusId),
+                assignedToUserId: resolvedAssignedIds[0] || "",
+                assignedToUserIds: resolvedAssignedIds,
+                joiningDate: formatDate(result?.joiningDate) || "",
+
+                // Reset file input
+                pdfFile: null,
+
+                // Clear any previous errors
+                errors: {},
+            };
+
+            console.log("Processed form data:", cleanFormData);
+
+            // Set form data and show modal
+            setFormData(prev => ({
+                ...prev,
+                ...cleanFormData,
+            }));
+            setShowModal(true);
+        } catch (error) {
+            console.error("Error loading deal details:", error);
+            // Optionally show an error message to the user
+        }
     };
 
     const handleDelete = (id) => {
@@ -114,38 +239,104 @@ export default function DealsPageContent() {
 
     const handleSave = async () => {
         const statusesItems = dealStatusesState?.items || [];
-        const selected = statusesItems.find((s) => s.name === formData.status);
-        if (!selected || !selected.id) {
+        const selectedStatus = statusesItems.find((s) => s.id === formData.statusId);
+        if (!selectedStatus || !selectedStatus.id) {
             return;
         }
 
-        const clientId = clients && clients.length > 0 ? clients[0].id : null;
-        if (!clientId) {
-            // No valid client available yet; do not send request
+        // Reset success state
+        setShowSuccessAlert(false);
+        setSuccessMessage("");
+
+        // Get entity type and ID from form data
+        const entityType = formData.entityType || "client";
+        const entityId = formData.entityId;
+
+        if (!entityId) {
+            console.error("No entity ID provided");
             return;
         }
+
+        const multipleAssignedIds = Array.isArray(formData.assignedToUserIds)
+            ? formData.assignedToUserIds.filter(Boolean)
+            : [];
+        const primaryAssignedId = multipleAssignedIds.length > 0
+            ? multipleAssignedIds[0]
+            : (formData.assignedToUserId || null);
+
         const payload = {
-            entityType: "client",
-            entityId: clientId,
-            statusId: selected.id,
+            entityType,
+            entityId,
+            statusId: selectedStatus.id,
             value: Number(formData.value) || 0,
-            currency: "AMD",
-            joiningDate: formData.joiningDate || undefined,
-            notes: formData.notes || undefined,
-            facebook: formData.facebook || undefined,
-            instagram: formData.instagram || undefined,
-            website: formData.website || undefined,
-            assignedToUserId: authUser?.id,
+            currency: formData.currency || "AMD",
+            name: formData.name?.trim() || "",
+            email: formData.email?.trim() || "",
+            phone: formData.phone?.trim() || "",
+            joiningDate: formData.joiningDate || new Date().toISOString().split("T")[0],
+            notes: formData.notes?.trim() || "",
+            facebook: formData.facebook?.trim() || undefined,
+            instagram: formData.instagram?.trim() || undefined,
+            website: formData.website?.trim() || undefined,
+            assignedToUserId: primaryAssignedId,
+            assignedToUserIds: multipleAssignedIds.length > 0
+                ? multipleAssignedIds
+                : (primaryAssignedId ? [primaryAssignedId] : []),
+            isFinished: Boolean(formData.isFinished) || false,
         };
 
-        if (editingDeal && editingDeal.id) {
-            await dispatch(updateDeal({ id: editingDeal.id, payload }));
-        } else {
-            await dispatch(createDeal(payload));
-        }
+        try {
+            if (editingDeal && editingDeal.id) {
+                // Handle update
+                const result = await dispatch(updateDeal({ id: editingDeal.id, payload }));
+                if (updateDeal.rejected.match(result)) {
+                    const error = result.payload || result.error;
+                    if (error?.errors) {
+                        const fieldErrors = {};
+                        error.errors.forEach(err => {
+                            fieldErrors[err.path] = err.message;
+                        });
+                        setFormData(prev => ({
+                            ...prev,
+                            errors: fieldErrors,
+                        }));
+                    }
+                    return;
+                }
+                setSuccessMessage("Deal updated successfully!");
+            } else {
+                // Handle create
+                const result = await dispatch(createDeal(payload));
+                if (createDeal.rejected.match(result)) {
+                    const error = result.payload || result.error;
+                    if (error?.errors) {
+                        const fieldErrors = {};
+                        error.errors.forEach(err => {
+                            fieldErrors[err.path] = err.message;
+                        });
+                        setFormData(prev => ({
+                            ...prev,
+                            errors: fieldErrors,
+                        }));
+                    }
+                    return;
+                }
+                setSuccessMessage("Deal created successfully!");
+            }
 
-        setShowModal(false);
-        resetForm();
+            // Show success and reset form if we get here (no errors)
+            setShowSuccessAlert(true);
+            setTimeout(() => setShowSuccessAlert(false), 1000);
+            setShowModal(false);
+            resetForm();
+        } catch (error) {
+            console.error("Error saving deal:", error);
+            // Handle any other unexpected errors
+            setFormData(prev => ({
+                ...prev,
+                errors: { _form: error.message || "An unexpected error occurred" },
+            }));
+        }
     };
 
     const toggleStatus = (st) => {
@@ -166,6 +357,18 @@ export default function DealsPageContent() {
 
     return (
         <div className="p-0">
+            {showSuccessAlert && (
+                <div
+                    className="flex items-start sm:items-center p-4 mb-4 text-sm text-green-800 rounded-base bg-green-200 border border-green-500 rounded-lg z-50"
+                    role="alert">
+                    <svg className="w-4 h-4 me-2 shrink-0 mt-0.5 sm:mt-0" aria-hidden="true"
+                         xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                              d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <p><span className="font-medium me-1">Success!</span> {successMessage}</p>
+                </div>
+            )}
             <div className="flex justify-between items-center mb-6">
                 <div className="flex justify-between items-center gap-5">
                     <h1 className="text-2xl font-bold text-gray-900">{t("Deals")}</h1>
@@ -197,6 +400,8 @@ export default function DealsPageContent() {
                             0,
                         );
 
+                        const colorHex = dealStatusesState?.items.find((status) => status.name === st)?.colorHex;
+
                         return (
                             <div
                                 key={i}
@@ -204,12 +409,13 @@ export default function DealsPageContent() {
                             >
                                 <h2 className="p-2 rounded-lg bg-white text-black border border-gray-300 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full ${getStatusStyle(st)}`}>{" "}</div>
+                                        <div className="w-3 h-3 rounded-full">{" "}</div>
                                         {st}
                                     </div>
                                     {stageDeals.length > 0 &&
                                         <div
-                                            className={`text-gray-400 rounded-md px-2 py-0.5 text-xs ${getStatusStyle(st)}`}>
+                                            className="text-gray-400 rounded-md px-2 py-0.5 text-xs border"
+                                            style={{ borderColor: colorHex, color: colorHex }}>
                                             {stageDeals.length} {t("deals")}
                                         </div>
                                     }
@@ -256,6 +462,11 @@ export default function DealsPageContent() {
                 formData={formData}
                 setFormData={setFormData}
                 editingDeal={editingDeal}
+                clients={clients}
+                campaigns={campaigns}
+                currentUser={authUser}
+                statuses={dealStatusesState?.items || []}
+                roles={roles}
             />
         </div>
     );

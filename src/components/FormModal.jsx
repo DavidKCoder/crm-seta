@@ -17,8 +17,8 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     const dispatch = useDispatch();
 
     const entity = title === "Clients" ? "client" : title === "Campaign" ? "campaign" : null;
-    const clientStatusesState = useSelector((state) => state.statuses.byEntity.client);
-    const campaignStatusesState = useSelector((state) => state.statuses.byEntity.campaign);
+    const clientStatusesState = useSelector((state) => state.statuses);
+    const campaignStatusesState = useSelector((state) => state.statuses);
     const activeStatusesState = entity === "client" ? clientStatusesState : entity === "campaign" ? campaignStatusesState : null;
 
     useEffect(() => setMounted(true), []);
@@ -32,90 +32,265 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
 
     if (!show || !mounted) return null;
 
+    const getStatusName = (status) => {
+        if (!status) return '';
+        return typeof status === 'string' ? status : status.name || '';
+    };
+
     const validate = () => {
         const newErrors = {};
         if (!formState.name?.trim()) newErrors.name = t("Name is required");
         if (!formState.email?.trim()) newErrors.email = t("Email is required");
         if (!formState.phone?.trim()) newErrors.phone = t("Phone is required");
-        if (!formState.status?.trim()) newErrors.status = t("Status is required");
+
+        const statusName = getStatusName(formState.status);
+        if (!statusName.trim()) newErrors.status = t("Status is required");
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const clearFieldError = (fieldName) => {
+        setErrors(prev => ({
+            ...prev,
+            [fieldName]: undefined
+        }));
     };
 
     const handleSave = async () => {
         if (!validate()) return;
 
-        if (entity === "client") {
-            const statusesItems = clientStatusesState?.items || [];
-            const selected = statusesItems.find((s) => s.name === formState.status);
-            if (!selected || !selected.id) {
-                setErrors((prev) => ({ ...prev, status: t("Status is required") }));
+        const statusName = getStatusName(formState.status);
+
+        try {
+            if (entity === "client") {
+                const statusesItems = clientStatusesState?.items || [];
+                const selected = statusesItems.find((s) => s.name === statusName);
+                if (!selected || !selected.id) {
+                    setErrors((prev) => ({ ...prev, status: t("Status is required") }));
+                    return;
+                }
+
+                const payload = {
+                    statusId: selected.id,
+                    name: formState.name,
+                    email: formState.email || undefined,
+                    phone: formState.phone || undefined,
+                    joiningDate: formState.joiningDate || undefined,
+                    notes: formState.notes || undefined,
+                    facebook: formState.facebook || undefined,
+                    instagram: formState.instagram || undefined,
+                    website: formState.website || undefined,
+                    ownerUserId: undefined,
+                };
+
+                const resultAction = editingId
+                    ? await dispatch(updateClient({ id: editingId, payload }))
+                    : await dispatch(createClient(payload));
+
+                if (updateClient.fulfilled.match(resultAction) || createClient.fulfilled.match(resultAction)) {
+                    onClose();
+                } else if (updateClient.rejected.match(resultAction) || createClient.rejected.match(resultAction)) {
+                    const error = resultAction.error || resultAction.payload;
+                    if (error?.errors) {
+                        // Handle API validation errors
+                        const apiErrors = {};
+                        error.errors.forEach(err => {
+                            apiErrors[err.path] = err.message;
+                        });
+                        setErrors(prev => ({ ...prev, ...apiErrors }));
+                    }
+                }
                 return;
             }
 
-            const payload = {
-                statusId: selected.id,
-                name: formState.name,
-                email: formState.email || undefined,
-                phone: formState.phone || undefined,
-                joiningDate: formState.joiningDate || undefined,
-                notes: formState.notes || undefined,
-                facebook: formState.facebook || undefined,
-                instagram: formState.instagram || undefined,
-                website: formState.website || undefined,
-                ownerUserId: undefined,
-            };
+            if (entity === "campaign") {
+                const statusesItems = campaignStatusesState?.items || [];
+                const selected = statusesItems.find((s) => s.name === statusName);
+                if (!selected || !selected.id) {
+                    setErrors((prev) => ({ ...prev, status: t("Status is required") }));
+                    return;
+                }
 
-            if (editingId) {
-                await dispatch(updateClient({ id: editingId, payload }));
-            } else {
-                await dispatch(createClient(payload));
-            }
+                const payload = {
+                    statusId: selected.id,
+                    name: formState.name,
+                    email: formState.email || undefined,
+                    phone: formState.phone || undefined,
+                    joiningDate: formState.joiningDate || undefined,
+                    notes: formState.notes || undefined,
+                    facebook: formState.facebook || undefined,
+                    instagram: formState.instagram || undefined,
+                    website: formState.website || undefined,
+                    source: formState.source || undefined,
+                };
 
-            onClose();
-            return;
-        }
+                const resultAction = editingId
+                    ? await dispatch(updateCampaign({ id: editingId, payload }))
+                    : await dispatch(createCampaign(payload));
 
-        if (entity === "campaign") {
-            const statusesItems = campaignStatusesState?.items || [];
-            const selected = statusesItems.find((s) => s.name === formState.status);
-            if (!selected || !selected.id) {
-                setErrors((prev) => ({ ...prev, status: t("Status is required") }));
+                if (updateCampaign.fulfilled.match(resultAction) || createCampaign.fulfilled.match(resultAction)) {
+                    onClose();
+                } else if (updateCampaign.rejected.match(resultAction) || createCampaign.rejected.match(resultAction)) {
+                    const apiErrors = {};
+
+                    // Handle different error formats
+                    if (resultAction.payload?.errors) {
+                        // Handle array of validation errors
+                        if (Array.isArray(resultAction.payload.errors)) {
+                            resultAction.payload.errors.forEach(err => {
+                                if (err.path && err.message) {
+                                    apiErrors[err.path] = err.message;
+                                } else if (err.message) {
+                                    apiErrors._form = (apiErrors._form ? apiErrors._form + ' ' : '') + err.message;
+                                }
+                            });
+                        }
+                    }
+
+                    // If we have a message but no field-specific errors
+                    if (resultAction.payload?.message && Object.keys(apiErrors).length === 0) {
+                        apiErrors._form = resultAction.payload.message;
+                    }
+
+                    // Fallback to error message from error object
+                    if (resultAction.error?.message && Object.keys(apiErrors).length === 0) {
+                        apiErrors._form = resultAction.error.message;
+                    }
+
+                    // Final fallback for unknown errors
+                    if (Object.keys(apiErrors).length === 0) {
+                        apiErrors._form = 'An unknown error occurred. Please try again.';
+                    }
+
+                    // Update errors state
+                    setErrors(prev => ({
+                        ...prev,
+                        ...apiErrors
+                    }));
+
+                    // Scroll to the first error
+                    setTimeout(() => {
+                        const firstErrorField = Object.keys(apiErrors).find(key => key !== '_form');
+                        if (firstErrorField) {
+                            const element = document.querySelector(`[name="${firstErrorField}"]`);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                element.focus();
+                            }
+                        } else if (apiErrors._form) {
+                            // If we only have a general error, scroll to the top of the form
+                            const formElement = document.querySelector('.bg-white.rounded-lg');
+                            if (formElement) {
+                                formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }
+                    }, 100);
+                }
                 return;
             }
 
-            const payload = {
-                // clientId and ownerUserId are omitted for now per requirements
-                statusId: selected.id,
-                name: formState.name,
-                email: formState.email || undefined,
-                phone: formState.phone || undefined,
-                joiningDate: formState.joiningDate || undefined,
-                notes: formState.notes || undefined,
-                facebook: formState.facebook || undefined,
-                instagram: formState.instagram || undefined,
-                website: formState.website || undefined,
-                source: formState.source || undefined,
-            };
-
-            if (editingId) {
-                await dispatch(updateCampaign({ id: editingId, payload }));
-            } else {
-                await dispatch(createCampaign(payload));
-            }
-
-            onClose();
-            return;
+            // Fallback: use provided onSave for non-client entities
+            onSave(formState);
+        } catch (error) {
+            console.error('Error saving data:', error);
+            // Handle any unexpected errors
+            setErrors(prev => ({
+                ...prev,
+                _error: error.message || 'An unexpected error occurred'
+            }));
         }
-
-        // Fallback: use provided onSave for non-client entities
-        onSave(formState);
     };
 
     const fields = [
         "name", "email", "phone", "Joining Date", "status",
         "facebook", "instagram", "website", "notes",
     ];
+
+    const renderField = (field) => {
+        const isRequired = field === "name" || field === "email" || field === "phone" || field === "status";
+        const fieldError = errors[field];
+        const fieldKey = field === "Joining Date" ? "joiningDate" : field;
+
+        return (
+            <div key={field} className={`flex flex-col ${field === "notes" ? "sm:col-span-2" : ""}`}>
+                <label className="block text-sm font-medium mb-1">
+                    {t(field[0].toUpperCase() + field.slice(1))}
+                    <span className={`${isRequired ? "text-red-500" : ""}`}>
+                        {`${isRequired ? " *" : ""}`}
+                    </span>
+                </label>
+
+                {field === "Joining Date" ? (
+                    <div className="flex flex-col">
+                        <DatePicker
+                            selected={formState.joiningDate ? new Date(formState.joiningDate) : null}
+                            onChange={(date) => {
+                                setFormState({
+                                    ...formState,
+                                    joiningDate: date ? date.toISOString().split("T")[0] : "",
+                                });
+                                clearFieldError("joiningDate");
+                            }}
+                            className={`border p-2 w-full rounded cursor-pointer ${fieldError ? "border-red-500" : ""}`}
+                            dateFormat="yyyy-MM-dd"
+                        />
+                        {fieldError && (
+                            <p className="text-red-500 text-xs mt-1">{fieldError}</p>
+                        )}
+                    </div>
+                ) : field === "status" ? (
+                    <div className="flex flex-col">
+                        <select
+                            className={`border p-2 w-full rounded ${fieldError ? "border-red-500" : ""}`}
+                            value={getStatusName(formState.status)}
+                            onChange={e => {
+                                setFormState({ ...formState, status: e.target.value });
+                                clearFieldError("status");
+                            }}
+                        >
+                            <option value="" disabled hidden>{t("Select status")}</option>
+                            {(activeStatusesState?.items || []).map((s) => (
+                                <option key={s.id} value={s.name}>{t(s.name)}</option>
+                            ))}
+                        </select>
+                        {fieldError && (
+                            <p className="text-red-500 text-xs mt-1">{fieldError}</p>
+                        )}
+                    </div>
+                ) : field === "notes" ? (
+                    <div className="flex flex-col">
+                        <textarea
+                            className={`border p-2 w-full rounded min-h-[100px] ${fieldError ? "border-red-500" : ""}`}
+                            value={formState[field] || ""}
+                            onChange={e => {
+                                setFormState({ ...formState, [field]: e.target.value });
+                                clearFieldError(field);
+                            }}
+                        />
+                        {fieldError && (
+                            <p className="text-red-500 text-xs mt-1">{fieldError}</p>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex flex-col">
+                        <input
+                            type={field === 'email' ? 'email' : 'text'}
+                            className={`border p-2 w-full rounded ${fieldError ? "border-red-500" : ""}`}
+                            value={formState[fieldKey] || ""}
+                            onChange={e => {
+                                setFormState({ ...formState, [fieldKey]: e.target.value });
+                                clearFieldError(fieldKey);
+                            }}
+                        />
+                        {fieldError && (
+                            <p className="text-red-500 text-xs mt-1">{fieldError}</p>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 text-gray-900">
@@ -131,68 +306,15 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                     {editingId ? t("Edit") : t("Add")}
                 </h2>
 
+                {/* General form error */}
+                {(errors._form || errors._error) && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {errors._form || errors._error}
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {fields.map(field => {
-                        const isRequired = field === "name" || field === "email" || field === "phone" || field === "status";
-                        return (
-                            <div key={field} className={`flex flex-col ${field === "notes" ? "sm:col-span-2" : ""}`}>
-                                <label className="block text-sm font-medium mb-1">
-                                    {t(field[0].toUpperCase() + field.slice(1))}
-                                    <span className={`${isRequired ? "text-red-500" : ""}`}>
-                                    {`${isRequired ? " *" : ""}`}
-                                </span>
-                                </label>
-
-
-                                {field === "Joining Date" ? (
-                                    <DatePicker
-                                        selected={formState.joiningDate ? new Date(formState.joiningDate) : null}
-                                        onChange={(date) =>
-                                            setFormState({
-                                                ...formState,
-                                                joiningDate: date ? date.toISOString().split("T")[0] : "",
-                                            })
-                                        }
-                                        className="border p-2 w-full rounded cursor-pointer"
-                                        dateFormat="yyyy-MM-dd"
-                                    />
-                                ) : field === "status" ? (
-                                    <select
-                                        className={`border p-2 w-full rounded ${errors.status ? "border-red-500" : ""}`}
-                                        value={formState.status || ""}
-                                        onChange={e => setFormState({ ...formState, status: e.target.value })}
-                                    >
-                                        <option value="" disabled hidden>{t("Select status")}</option>
-                                        {(activeStatusesState?.items || []).map((s) => (
-                                            <option key={s.id} value={s.name}>{t(s.name)}</option>
-                                        ))}
-                                    </select>
-                                ) : field === "joiningDate" ? (
-                                    <input
-                                        type="date"
-                                        className="border p-2 w-full rounded"
-                                        value={formState.joiningDate || ""}
-                                        onChange={e => setFormState({ ...formState, joiningDate: e.target.value })}
-                                    />
-                                ) : field === "notes" ? (
-                                    <textarea
-                                        className={`border p-2 w-full rounded min-h-[100px] resize-y ${errors.notes ? "border-red-500" : ""}`}
-                                        value={formState.notes || ""}
-                                        onChange={e => setFormState({ ...formState, notes: e.target.value })}
-                                    />
-                                ) : (
-                                    <input
-                                        type="text"
-                                        className={`border p-2 w-full rounded ${errors[field] ? "border-red-500" : ""}`}
-                                        value={formState[field] || ""}
-                                        onChange={e => setFormState({ ...formState, [field]: e.target.value })}
-                                    />
-                                )}
-
-                                {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
-                            </div>
-                        );
-                    })}
+                    {fields.map(renderField)}
                 </div>
 
                 <button

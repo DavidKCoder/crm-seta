@@ -1,4 +1,5 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+const debug = process.env.NODE_ENV === 'development';
 
 export async function authRequest(path, options = {}) {
     const res = await fetch(`${API_BASE_URL}/api/auth${path}`, {
@@ -157,6 +158,91 @@ export async function apiDelete(path) {
     }
 
     return handleJsonResponse(res);
+}
+
+export async function apiUpload(path, formData) {
+    const url = buildUrl(path);
+    let res;
+
+    console.log('=== File Upload Debug ===');
+    console.log('Upload URL:', url);
+    console.log('FormData entries:');
+
+    for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+            console.log(`- ${key}:`, {
+                name: value.name,
+                type: value.type,
+                size: value.size,
+                lastModified: new Date(value.lastModified).toISOString()
+            });
+        } else {
+            console.log(`- ${key}:`, value);
+        }
+    }
+
+    try {
+        console.log('Sending upload request...');
+        const startTime = Date.now();
+
+        res = await fetch(url, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+            // Не устанавливаем Content-Type - браузер сам установит с boundary
+        });
+
+        const endTime = Date.now();
+        console.log(`Request completed in ${endTime - startTime}ms`);
+        console.log('Response status:', res.status, res.statusText);
+
+        // Обработка 401 и refresh token
+        if (res.status === 401) {
+            try {
+                console.log('Attempting token refresh...');
+                await authRequest('/refresh', {});
+                console.log('Token refreshed, retrying upload...');
+
+                res = await fetch(url, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData,
+                });
+
+                console.log('Retry response status:', res.status, res.statusText);
+            } catch (error) {
+                console.error('Failed to refresh token:', error);
+                throw new Error('Authentication failed');
+            }
+        }
+
+        if (!res.ok) {
+            let errorMessage = `Upload failed: ${res.status} ${res.statusText}`;
+
+            try {
+                const errorText = await res.text();
+                console.log('Raw error response:', errorText);
+
+                if (errorText) {
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch {
+                        errorMessage = errorText || errorMessage;
+                    }
+                }
+            } catch (e) {
+                console.error('Error reading error response:', e);
+            }
+
+            throw new Error(errorMessage);
+        }
+
+        return handleJsonResponse(res);
+    } catch (error) {
+        console.error('Error in apiUpload:', error);
+        throw error;
+    }
 }
 
 export async function authGet(path) {

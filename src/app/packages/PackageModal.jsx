@@ -10,13 +10,14 @@ export default function PackageModal({
                                          form,
                                          setForm,
                                          handleSubmit,
+                                         isSaving = false,
+                                         currencyOptions = [],
                                      }) {
     if (!modalOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
             <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
-                {/* Close button */}
                 <button
                     onClick={() => setModalOpen(false)}
                     className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 cursor-pointer"
@@ -28,41 +29,53 @@ export default function PackageModal({
                     {editId ? t("EditPackage") : t("AddPackage")}
                 </h2>
 
-                <div className="space-y-3">
-                    {/* Title */}
+                <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">{t("Title")}</label>
+                        <label className="block text-sm font-medium mb-1">{t("Name")}</label>
                         <input
                             type="text"
-                            value={form.title}
-                            onChange={(e) => setForm({ ...form, title: e.target.value })}
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
                             className="border rounded p-2 w-full"
                         />
                     </div>
 
-                    {/* Price (only digits) */}
                     <div>
-                        <label className="block text-sm font-medium mb-1">{t("Price")}</label>
-                        <input
-                            type="text"
-                            inputMode="numeric"
-                            value={form.price}
-                            onChange={(e) =>
-                                setForm({ ...form, price: e.target.value.replace(/\D/g, "") })
-                            }
-                            className="border rounded p-2 w-full"
-                        />
-                    </div>
-
-                    {/* Services */}
-                    <div>
-                        <label className="block text-sm font-medium mb-1">{t("ServicesComma")}</label>
+                        <label className="block text-sm font-medium mb-1">{t("Description")}</label>
                         <textarea
                             rows={3}
-                            value={form.services}
-                            onChange={(e) => setForm({ ...form, services: e.target.value })}
+                            value={form.description}
+                            onChange={(e) => setForm({ ...form, description: e.target.value })}
                             className="border rounded p-2 w-full"
                         />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium mb-1">{t("Price")}</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={form.price}
+                                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                className="border rounded p-2 w-full"
+                            />
+                        </div>
+                        <div className="w-32">
+                            <label className="block text-sm font-medium mb-1">{t("Currency")}</label>
+                            <select
+                                value={form.currency}
+                                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                                className="border rounded p-2 w-full"
+                            >
+                                {currencyOptions.map((currency) => (
+                                    <option key={currency} value={currency}>
+                                        {currency}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -70,14 +83,16 @@ export default function PackageModal({
                     <button
                         onClick={() => setModalOpen(false)}
                         className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 cursor-pointer"
+                        disabled={isSaving}
                     >
                         {t("Cancel")}
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 cursor-pointer"
+                        className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 cursor-pointer disabled:opacity-60"
+                        disabled={isSaving}
                     >
-                        {editId ? t("Save") : t("Add")}
+                        {isSaving ? t("Saving...") : editId ? t("Save") : t("Add")}
                     </button>
                 </div>
             </div>

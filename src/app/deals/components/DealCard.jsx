@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import { BiDotsVerticalRounded } from "react-icons/bi";
-import { FiMail, FiEdit2, FiTrash, FiPhone } from "react-icons/fi";
+import { FiMail, FiEdit2, FiTrash, FiPhone, FiUserPlus } from "react-icons/fi";
 import { DealAvatar } from "@/app/deals/components/DealAvatar";
 import { useTranslation } from "react-i18next";
 import { DealDetailsModal } from "@/app/deals/components/DealDetailsModal";
 import { useDealStatuses } from "@/components/DealStatusesProvider";
+import { TbBuildingStore, TbUserBolt } from "react-icons/tb";
+import { PiHandshake } from "react-icons/pi";
 
 export function DealCard({ deal, st, handleEdit, handleDelete }) {
     const { t } = useTranslation();
@@ -14,6 +16,16 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const menuRef = useRef(null);
+    const assignedUsers = Array.isArray(deal?.assignedUsers) && deal.assignedUsers.length > 0
+        ? deal.assignedUsers
+        : (deal?.assignedTo ? [deal.assignedTo].filter(Boolean) : []);
+    const assignedNames = assignedUsers.map((user) => {
+        const firstName = user?.firstName || "";
+        const lastName = user?.lastName || "";
+        const fallback = user?.name || user?.email || "";
+        const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+        return fullName || fallback;
+    }).filter(Boolean);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -28,6 +40,10 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
         };
     }, []);
 
+    console.log("Deal: ", deal);
+
+    const isCampaign = deal?.entity?.type === "campaign";
+
     return (
         <>
             <div
@@ -37,10 +53,18 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
                 <div className="flex justify-between items-center relative">
                     <div className="flex flex-col space-y-1 w-full">
                         <div className="text-gray-800 font-medium flex items-center justify-between gap-1">
-                            <div className="flex items-center gap-1 cursor-pointer" onClick={() => setDetailsOpen(true)}>
-                                <DealAvatar deal={deal} />
-                                <span className="truncate max-w-[200px]">{deal.name}</span>
+                            <div
+                                className="flex items-center gap-1 cursor-pointer"
+                                onClick={() => setDetailsOpen(true)}
+                            >
+                                <div
+                                    className="flex items-center gap-1 bg-purple-100 text-purple-800 font-medium p-1 rounded-sm border border-purple-400"
+                                >
+                                    <PiHandshake className="text-purple-800" size={18} />
+                                    <span>{deal?.name}</span>
+                                </div>
                             </div>
+
                             <div className="relative" ref={menuRef}>
                                 <BiDotsVerticalRounded
                                     className="cursor-pointer hover:text-purple-600"
@@ -86,21 +110,43 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
 
                         <hr className="border-gray-300 my-1 w-auto" />
                         <div className="flex items-center gap-1 text-gray-400 font-medium text-sm">
-                            <FiPhone size={14} /> {deal.phone}
+                            {isCampaign ? <TbBuildingStore size={15} /> : <TbUserBolt size={15} />} {deal?.entity?.name}
                         </div>
                         <div className="flex items-center gap-1 text-gray-400 font-medium text-sm">
-                            <FiMail size={14} /> {deal.email}
+                            <FiPhone size={15} /> {deal.phone}
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-400 font-medium text-sm">
+                            <FiMail size={15} /> {deal.email}
+                        </div>
+                        <div className="flex items-baseline gap-2 text-gray-500 text-sm">
+                            {assignedUsers.length > 0 ? (
+                                <div className="flex flex-col gap-1 w-full">
+                                    <div className="flex -space-x-2 rtl:space-x-reverse">
+                                        {assignedUsers.map((user, index) => (
+                                            <div key={user.id || user.email || `assigned-user-${index}`}>
+                                                <DealAvatar deal={user} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                        {assignedNames.join(", ")}
+                                    </div>
+                                </div>
+                            ) : (
+                                <span className="text-xs text-gray-400">{t("No assigned users")}</span>
+                            )}
                         </div>
                         <div className="text-gray-700 flex items-center gap-1">
                         <span
-                            className="bg-purple-100 text-purple-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm border border-purple-400">
-                            #{deal.id}
+                            className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm border border-purple-400">
+                            #{deal.id.slice(0, 8)}
                         </span>
-                        {deal.isFinished && (
-                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-sm border border-green-400">
+                            {deal.isFinished && (
+                                <span
+                                    className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-sm border border-green-400">
                                 ✓ {t("Is Finished")}
                             </span>
-                        )}
+                            )}
                         </div>
                     </div>
                 </div>

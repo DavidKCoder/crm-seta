@@ -1,163 +1,383 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useRoles } from "@/components/RolesProvider";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { useCanAccess } from "@/hooks/useCanAccess";
-import Link from "next/link";
-import { apiGet } from "@/lib/apiClient";
+import { apiGet, apiPost, apiDelete } from "@/lib/apiClient";
+import RolesTab from "./components/RolesTab";
+import StatusesTab from "./components/StatusesTab";
+import UsersTab from "./components/UsersTab";
+
+const MODULES = ["clients", "campaign", "deals", "expenses", "packages", "statistics"];
+const ADMIN_TOOLS = ["admin.dashboard", "manage.roles", "manage.statuses"];
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
     const { roles, setRoleAccess, getRoleConfig } = useRoles();
     const { role } = useCurrentUserRole();
     const { canAccess } = useCanAccess();
+    
+    // State management
     const [backendRoles, setBackendRoles] = useState([]);
+    const [activeTab, setActiveTab] = useState("roles");
+    const [isCreatingRole, setIsCreatingRole] = useState(false);
+    const [roleToDelete, setRoleToDelete] = useState(null);
+    const [newRole, setNewRole] = useState({ name: "", description: "" });
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const MODULES = ["clients", "campaign", "deals", "expenses", "packages", "statistics"];
-    const ADMIN_TOOLS = ["admin.dashboard", "manage.roles", "manage.statuses"];
+    // Load roles on component mount
+    const loadRoles = useCallback(async () => {
+        try {
+            const data = await apiGet("/api/roles");
+            const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+            const withNames = list.filter((r) => r && typeof r.name === "string" && r.name.trim().length > 0);
+            withNames.sort((a, b) => a.name.localeCompare(b.name));
+            setBackendRoles(withNames);
+        } catch (error) {
+            console.error("Error loading roles:", error);
+            setError(t("Failed to load roles. Please refresh the page."));
+        }
+    }, [t]);
 
+    // Initialize roles on mount
     useEffect(() => {
-        let isMounted = true;
-        const loadRoles = async () => {
-            try {
-                const data = await apiGet("/api/roles");
-                const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-                if (!isMounted) return;
-                const withNames = list.filter((r) => r && typeof r.name === "string" && r.name.trim().length > 0);
-                console.log("withNames", withNames);
-                setBackendRoles(withNames);
-            } catch {
-                // if backend roles fail to load, fall back to existing local rolesConfig
-                setBackendRoles([]);
-            }
-        };
         loadRoles();
-        return () => {
-            isMounted = false;
-        };
-    }, []);
+    }, [loadRoles]);
 
-    // Only users with admin.dashboard permission may view
-    if (!canAccess(role, "admin.dashboard")) return null;
+    // Handle role creation
+    const handleCreateRole = useCallback(async (e) => {
+        e?.preventDefault();
+        setError("");
+        setSuccess("");
+        
+        if (!newRole.name.trim()) {
+            setError(t("Role name is required"));
+            return;
+        }
 
-    const togglePermission = (roleName, key) => {
+        setIsSubmitting(true);
+
+        try {
+            await apiPost("/api/roles", {
+                name: newRole.name.trim(),
+                description: newRole.description.trim()
+            });
+
+            setSuccess(t(`Role "${newRole.name}" created successfully!`));
+            setNewRole({ name: "", description: "" });
+            setIsCreatingRole(false);
+            await loadRoles();
+        } catch (error) {
+            console.error("Error creating role:", error);
+            setError(error.message || t("Failed to create role. Please try again."));
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [newRole, t, loadRoles]);
+
+    // Toggle permission for a role
+    const togglePermission = useCallback((roleName, key) => {
         const cfg = getRoleConfig(roleName) || { access: [] };
         const acc = new Set(cfg.access || []);
         if (acc.has("all")) acc.delete("all");
         if (acc.has(key)) acc.delete(key); else acc.add(key);
         setRoleAccess(roleName, Array.from(acc));
-    };
+    }, [getRoleConfig, setRoleAccess]);
 
-    const toggleAllForRole = (roleName) => {
+    // Toggle all permissions for a role
+    const toggleAllForRole = useCallback((roleName) => {
         const cfg = getRoleConfig(roleName) || { access: [] };
         const hasAll = (cfg.access || []).includes("all");
         setRoleAccess(roleName, hasAll ? [] : ["all"]);
-    };
+    }, [getRoleConfig, setRoleAccess]);
+
+    // Handle delete role click
+    const handleDeleteClick = useCallback((role) => {
+        setRoleToDelete(role);
+    }, []);
+
+    // Handle role deletion
+    const confirmDeleteRole = useCallback(async () => {
+        if (!roleToDelete) return;
+
+        setError("");
+        setSuccess("");
+        setIsSubmitting(true);
+
+        try {
+            const roleId = roleToDelete.id || roleToDelete._id;
+            await apiDelete(`/api/roles/${roleId}`);
+
+            setSuccess(t(`Role "${roleToDelete.name}" deleted successfully`));
+            setBackendRoles(prev => 
+                prev.filter(r => (r.id || r._id) !== roleId)
+            );
+
+            const timer = setTimeout(() => {
+                setSuccess("");
+                setRoleToDelete(null);
+            }, 1000);
+
+            return () => clearTimeout(timer);
+        } catch (err) {
+            console.error("Error deleting role:", err);
+            setError(err.response?.data?.message || err.message || t("Failed to delete role"));
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [roleToDelete, t]);
+
+    if (!canAccess(role, "admin.dashboard")) return null;
 
     return (
         <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-gray-900">{t("Admin Dashboard")}</h1>
-            </div>
-
-            {/* Quick admin actions */}
-            <div className="mb-6 flex flex-wrap gap-3">
-                {canAccess(role, "manage.roles") && (
-                    <Link href="/manage/roles"
-                          className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
-                        {t("Manage roles")}
-                    </Link>
-                )}
-                {canAccess(role, "manage.statuses") && (
-                    <Link href="/manage/statuses"
-                          className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">
-                        {t("Manage statuses")}
-                    </Link>
+                <h1 className="text-2xl font-bold text-gray-900">{t('Admin Dashboard')}</h1>
+                {activeTab === 'roles' && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsCreatingRole(true);
+                            setError('');
+                            setSuccess('');
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                        {t('Create Role')}
+                    </button>
                 )}
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 text-black">
-                {/* Roles x Modules */}
-                <div className="bg-white border rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-semibold">{t("Permissions")} — {t("Modules")}</h2>
-                    </div>
-                    <div className="flex flex-col gap-4">
-                        {backendRoles.map((name) => ({ name })).map((r) => {
-                            const roleName = r.name;
-                            const acc = roles[roleName]?.access || [];
-                            const hasAll = acc.includes("all");
-                            return (
-                                <div key={roleName} className="border rounded p-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="font-medium">{roleName}</div>
-                                        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                                            <input type="checkbox" checked={hasAll}
-                                                   onChange={() => toggleAllForRole(roleName)} />
-                                            <span>{t("All")}</span>
-                                        </label>
-                                    </div>
-                                    {!hasAll && (
-                                        <div className="flex flex-wrap gap-2">
-                                            {MODULES.map((m) => (
-                                                <label key={m}
-                                                       className="flex items-center gap-2 text-sm cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={acc.includes(m)}
-                                                        onChange={() => togglePermission(roleName, m)}
-                                                    />
-                                                    <span
-                                                        className="px-2 py-0.5 rounded bg-white border text-gray-700">{m}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+            {/* Delete Confirmation Modal */}
+            {roleToDelete && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                        <h2 className="text-xl font-bold mb-4">{t('Delete Role')}</h2>
+
+                        {error && (
+                            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                                {error}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">
+                                {success}
+                            </div>
+                        )}
+
+                        <p className="mb-6">
+                            {t('Are you sure you want to delete the role')}{' '}
+                            <span className="font-semibold">{roleToDelete?.name}</span>?{' '}
+                            {t('This action cannot be undone.')}
+                        </p>
+
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setRoleToDelete(null);
+                                    setError('');
+                                    setSuccess('');
+                                }}
+                                className="px-4 py-2 border rounded hover:bg-gray-100 cursor-pointer"
+                                disabled={isSubmitting}
+                            >
+                                {t('Cancel')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDeleteRole}
+                                className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <span className="flex items-center">
+                                        <svg
+                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        {t('Deleting...')}
+                                    </span>
+                                ) : (
+                                    t('Delete')
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
+            )}
 
-                {/* Roles x Admin tools */}
-                <div className="bg-white border rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-semibold">{t("Permissions")} — {t("Admin tools")}</h2>
-                    </div>
-                    <div className="flex flex-col gap-4">
-                        {(backendRoles.map((name) => ({ name }))).map((r) => {
-                            const roleName = r.name;
-                            const acc = roles[roleName]?.access || [];
-                            const hasAll = acc.includes("all");
-                            return (
-                                <div key={roleName} className="border rounded p-3">
-                                    <div className="font-medium mb-2">{roleName}</div>
-                                    {hasAll ? (
-                                        <div className="text-sm text-gray-500">{t("All")}</div>
+            {/* Create Role Modal */}
+            {isCreatingRole && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                        <h2 className="text-xl font-bold mb-4">{t('Create New Role')}</h2>
+
+                        {error && (
+                            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                                {error}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">
+                                {success}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleCreateRole}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-1">
+                                    {t('Role Name')} <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={newRole.name}
+                                    onChange={(e) => setNewRole((prev) => ({ ...prev, name: e.target.value }))}
+                                    className="w-full p-2 border rounded"
+                                    placeholder={t('Enter role name')}
+                                    required
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-1">
+                                    {t('Description')}
+                                </label>
+                                <textarea
+                                    name="description"
+                                    value={newRole.description}
+                                    onChange={(e) => setNewRole((prev) => ({ ...prev, description: e.target.value }))}
+                                    className="w-full p-2 border rounded"
+                                    placeholder={t('Enter role description')}
+                                    rows="3"
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCreatingRole(false);
+                                        setNewRole({ name: '', description: '' });
+                                        setError('');
+                                        setSuccess('');
+                                    }}
+                                    className="px-4 py-2 border rounded hover:bg-gray-100 cursor-pointer"
+                                >
+                                    {t('Cancel')}
+                                </button>
+                                <button
+                                    type="submit"
+                                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <span className="flex items-center">
+                                            <svg
+                                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
+                                            </svg>
+                                            {t('Creating...')}
+                                        </span>
                                     ) : (
-                                        <div className="flex flex-wrap gap-2">
-                                            {ADMIN_TOOLS.map((m) => (
-                                                <label key={m}
-                                                       className="flex items-center gap-2 text-sm cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={acc.includes(m)}
-                                                        onChange={() => togglePermission(roleName, m)}
-                                                    />
-                                                    <span
-                                                        className="px-2 py-0.5 rounded bg-white border text-gray-700">{m}</span>
-                                                </label>
-                                            ))}
-                                        </div>
+                                        t('Create')
                                     )}
-                                </div>
-                            );
-                        })}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
+            )}
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 mb-6">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('roles')}
+                    className={`px-4 py-2 font-medium ${activeTab === 'roles' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    {t('Roles')}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('statuses')}
+                    className={`px-4 py-2 font-medium ${activeTab === 'statuses' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    {t('Statuses')}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('users')}
+                    className={`px-4 py-2 font-medium ${activeTab === 'users' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    {t('Users')}
+                </button>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === 'roles' && (
+                <RolesTab
+                    roles={roles}
+                    backendRoles={backendRoles}
+                    togglePermission={togglePermission}
+                    toggleAllForRole={toggleAllForRole}
+                    MODULES={MODULES}
+                    ADMIN_TOOLS={ADMIN_TOOLS}
+                    handleDeleteClick={handleDeleteClick}
+                    t={t}
+                />
+            )}
+
+            {activeTab === 'statuses' && canAccess(role, 'manage.statuses') && (
+                <StatusesTab />
+            )}
+
+            {activeTab === 'users' && (
+                <UsersTab
+                    backendRoles={backendRoles}
+                    apiPost={apiPost}
+                    t={t}
+                />
+            )}
         </div>
     );
 }

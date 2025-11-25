@@ -69,6 +69,11 @@ export default function LoginPage() {
                             placeholder="••••••••"
                         />
                     </div>
+                    {error && (
+                        <div className="mt-2 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+                            {error}
+                        </div>
+                    )}
                     <button
                         type="submit"
                         className="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg cursor-pointer disabled:opacity-60"

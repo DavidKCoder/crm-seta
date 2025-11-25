@@ -13,6 +13,7 @@ export default function RolesManager({ show, onClose }) {
     const { roles, addRole, removeRole, setRoleAccess, getRoleConfig } = useRoles();
     const { statuses } = useDealStatuses();
     const [newRole, setNewRole] = useState("");
+    const [newDescription, setNewDescription] = useState("");
     const [backendRoles, setBackendRoles] = useState([]);
     const [loading, setLoading] = useState(false);
     const { role } = useCurrentUserRole();
@@ -58,7 +59,7 @@ export default function RolesManager({ show, onClose }) {
         const name = newRole.trim();
         if (!name) return;
         try {
-            const created = await apiPost("/api/roles", { name, description: null });
+            const created = await apiPost("/api/roles", { name, description: newDescription || null });
             const roleData = created?.data || created;
             // Update backend roles list
             setBackendRoles((prev) => {
@@ -68,6 +69,7 @@ export default function RolesManager({ show, onClose }) {
             // Ensure local access config exists
             addRole(roleData.name, { access: [], restricted: [] });
             setNewRole("");
+            setNewDescription("");
         } catch {
         }
     };
@@ -100,21 +102,32 @@ export default function RolesManager({ show, onClose }) {
                 <h2 className="text-xl font-semibold mb-4">{t("Manage roles")}</h2>
 
                 {/* Add role */}
-                <div className="flex gap-2 mb-4">
-                    <input
-                        type="text"
-                        placeholder={t("Role name")}
-                        value={newRole}
-                        onChange={(e) => setNewRole(e.target.value)}
-                        className="border p-2 rounded flex-1"
-                    />
-                    <button
-                        onClick={handleAddRole}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
-                        disabled={!newRole.trim()}
-                    >
-                        {t("Add")}
-                    </button>
+                <div className="flex flex-col gap-2 mb-4">
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder={t("Role name")}
+                            value={newRole}
+                            onChange={(e) => setNewRole(e.target.value)}
+                            className="border p-2 rounded flex-1"
+                        />
+                        <input
+                            type="text"
+                            placeholder={t("Description")}
+                            value={newDescription}
+                            onChange={(e) => setNewDescription(e.target.value)}
+                            className="border p-2 rounded flex-1"
+                        />
+                    </div>
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleAddRole}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
+                            disabled={!newRole.trim()}
+                        >
+                            {t("Add")}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Roles list from backend */}

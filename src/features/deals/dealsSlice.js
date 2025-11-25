@@ -1,7 +1,7 @@
 "use client";
 
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/apiClient";
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/apiClient";
 
 const initialState = {
     items: [],
@@ -22,6 +22,18 @@ export const fetchDeals = createAsyncThunk(
     }
 );
 
+export const fetchDealById = createAsyncThunk(
+    "deals/fetchDealById",
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await apiGet(`/api/deals/${id}`);
+            return response.data; // Return the deal data directly
+        } catch (err) {
+            return rejectWithValue(err.message || `Failed to load deal ${id}`);
+        }
+    }
+);
+
 export const createDeal = createAsyncThunk(
     "deals/createDeal",
     async (payload, { rejectWithValue }) => {
@@ -38,8 +50,7 @@ export const updateDeal = createAsyncThunk(
     "deals/updateDeal",
     async ({ id, payload }, { rejectWithValue }) => {
         try {
-            const data = await apiPut(`/api/deals/${id}`, payload);
-            return data;
+            return await apiPut(`/api/deals/${id}`, payload);
         } catch (err) {
             return rejectWithValue(err.message || "Failed to update deal");
         }
@@ -76,6 +87,24 @@ const dealsSlice = createSlice({
             .addCase(fetchDeals.rejected, (state, action) => {
                 state.status = "failed";
                 state.error = action.payload || action.error?.message || "Failed to load deals";
+            })
+            .addCase(fetchDealById.pending, (state) => {
+                state.status = "loading";
+                state.error = null;
+            })
+            .addCase(fetchDealById.fulfilled, (state, action) => {
+                state.status = "succeeded";
+                // Update the specific deal in the items array if it exists
+                const index = state.items.findIndex(deal => deal.id === action.payload.id);
+                if (index !== -1) {
+                    state.items[index] = action.payload;
+                } else {
+                    state.items.push(action.payload);
+                }
+            })
+            .addCase(fetchDealById.rejected, (state, action) => {
+                state.status = "failed";
+                state.error = action.payload || action.error?.message || "Failed to load deal";
             })
             .addCase(createDeal.fulfilled, (state, action) => {
                 const created = action.payload?.data;

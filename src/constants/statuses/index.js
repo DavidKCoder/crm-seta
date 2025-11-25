@@ -1,1 +1,0 @@
-export const statuses = ["New", "Pending", "Approved", "Copy Writing", "Shooting", "Design", "Targeting", "Completed", "Lost"];

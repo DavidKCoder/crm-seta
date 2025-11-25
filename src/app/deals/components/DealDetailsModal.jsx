@@ -1,12 +1,13 @@
-"use client";
-
 import { IoMdClose } from "react-icons/io";
-import { FiPhone, FiMail, FiGlobe, FiInstagram, FiFacebook } from "react-icons/fi";
+import { FiPhone, FiMail, FiGlobe, FiInstagram, FiFacebook, FiUserPlus } from "react-icons/fi";
 import { TbCurrencyDram } from "react-icons/tb";
 import { useTranslation } from "react-i18next";
 
 export function DealDetailsModal({ deal, onClose }) {
     const { t } = useTranslation();
+    const assignedUsers = Array.isArray(deal?.assignedUsers) && deal.assignedUsers.length > 0
+        ? deal.assignedUsers
+        : (deal?.assignedTo ? [deal.assignedTo].filter(Boolean) : []);
 
     if (!deal) return null;
 
@@ -29,19 +30,19 @@ export function DealDetailsModal({ deal, onClose }) {
                     <div className="flex items-center gap-2">
                         <FiMail /> {deal.email}
                     </div>
-                    {deal.website && (
+                    {deal?.website && (
                         <div className="flex items-center gap-2">
-                            <FiGlobe /> <a href={deal.website} target="_blank" className="text-blue-600 underline">{deal.website}</a>
+                            <FiGlobe /> <a href={deal.website} target="_blank" rel="noreferrer" className="text-blue-600 underline">{deal.website}</a>
                         </div>
                     )}
-                    {deal.instagram && (
+                    {deal?.instagram && (
                         <div className="flex items-center gap-2">
-                            <FiInstagram /> <a href={deal.instagram} target="_blank" className="text-pink-600">@{deal.instagram}</a>
+                            <FiInstagram /> <a href={deal.instagram} target="_blank" rel="noreferrer" className="text-pink-600">@{deal.instagram}</a>
                         </div>
                     )}
-                    {deal.facebook && (
+                    {deal?.facebook && (
                         <div className="flex items-center gap-2">
-                            <FiFacebook /> <a href={deal.facebook} target="_blank" className="text-blue-600">{deal.facebook}</a>
+                            <FiFacebook /> <a href={deal.facebook} target="_blank" rel="noreferrer" className="text-blue-600">{deal.facebook}</a>
                         </div>
                     )}
 
@@ -50,8 +51,27 @@ export function DealDetailsModal({ deal, onClose }) {
                     </div>
 
                     <div>
-                        <strong>{t("Status")}:</strong> {deal.status}
+                        <strong>{t("Status")}:</strong> {deal.status?.name}
                     </div>
+
+                    {assignedUsers.length > 0 && (
+                        <div className="flex items-start gap-2">
+                            <FiUserPlus className="mt-1" />
+                            <div>
+                                <strong>{t("Assigned Users")}:</strong>
+                                <ul className="mt-1 list-disc list-inside text-sm text-gray-600">
+                                    {assignedUsers.map((user, index) => {
+                                        const firstName = user?.firstName || "";
+                                        const lastName = user?.lastName || "";
+                                        const fallback = user?.name || user?.email || "";
+                                        const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+                                        const displayName = fullName || fallback || t("Unnamed User");
+                                        return <li key={user.id || `assigned-user-${index}`}>{displayName}</li>;
+                                    })}
+                                </ul>
+                            </div>
+                        </div>
+                    )}
 
                     {deal.notes && (
                         <div>

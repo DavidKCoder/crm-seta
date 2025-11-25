@@ -1,98 +1,120 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import PackageModal from "@/app/packages/PackageModal";
 import { TbCurrencyDram } from "react-icons/tb";
+import PackageModal from "@/app/packages/PackageModal";
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/apiClient";
 
-const initialPackages = [
-    {
-        id: 1,
-        title: "Սկզբնական",
-        price: 9900,
-        services: [
-            "Շաբաթական 3 հրապարակում",
-            "Ներգրավվածության վերլուծություն",
-            "Հիմնական դիզայն հրապարակումների համար",
-        ],
-    },
-    {
-        id: 2,
-        title: "Բիզնես",
-        price: 14800,
-        services: [
-            "Շաբաթական 5 հրապարակում",
-            "Վերլուծություն և հաշվետվություններ",
-            "Հրապարակումների և պատմությունների դիզայն",
-            "Թիրախավորված գովազդ",
-        ],
-    },
-    {
-        id: 3,
-        title: "Պրեմիում",
-        price: 35000,
-        services: [
-            "Ամենօրյա հրապարակումներ",
-            "Լիարժեք վերլուծություն և հաշվետվություններ",
-            "Պրոֆեսիոնալ դիզայն",
-            "Թիրախավորում + բովանդակության առաջխաղացում",
-            "SMM ռազմավարություն",
-        ],
-    },
-];
-
+const defaultForm = {
+    name: "",
+    description: "",
+    price: "",
+    currency: "AMD",
+};
 
 export default function PackagesPageContent() {
     const { t } = useTranslation();
-    const [packages, setPackages] = useState(initialPackages);
+    const [packages, setPackages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
-    const [editId, setEditId] = useState(null);
-    const [form, setForm] = useState({ title: "", price: "", services: "" });
+    const [isSaving, setIsSaving] = useState(false);
+    const [editingPackage, setEditingPackage] = useState(null);
+    const [form, setForm] = useState(defaultForm);
+
+    const currencyOptions = useMemo(() => ["AMD", "USD", "EUR", "RUB"], []);
+
+    const fetchPackages = async () => {
+        setLoading(true);
+        setError("");
+        try {
+            const response = await apiGet("/api/packages");
+            if (response?.data && Array.isArray(response.data)) {
+                setPackages(response.data);
+            } else {
+                setPackages([]);
+            }
+        } catch (err) {
+            console.error("Error fetching packages:", err);
+            setError(t("Failed to load packages"));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPackages();
+    }, []);
 
     const openModal = (pkg = null) => {
         if (pkg) {
-            setEditId(pkg.id);
+            setEditingPackage(pkg);
             setForm({
-                title: pkg.title,
-                price: pkg.price,
-                services: pkg.services.join(", "),
+                name: pkg.name || "",
+                description: pkg.description || "",
+                price: pkg.price ?? "",
+                currency: pkg.currency || "AMD",
             });
         } else {
-            setEditId(null);
-            setForm({ title: "", price: "", services: "" });
+            setEditingPackage(null);
+            setForm(defaultForm);
         }
         setModalOpen(true);
     };
 
-    const handleSubmit = () => {
-        if (!form.title.trim()) return alert(t("EnterPackageName"));
-
-        const newPkg = {
-            id: editId || Date.now(),
-            title: form.title,
-            price: form.price,
-            services: form.services.split(",").map((s) => s.trim()).filter(Boolean),
-        };
-
-        if (editId) {
-            setPackages(packages.map((p) => (p.id === editId ? newPkg : p)));
-        } else {
-            setPackages([newPkg, ...packages]);
-        }
-
+    const closeModal = () => {
         setModalOpen(false);
+        setForm(defaultForm);
+        setEditingPackage(null);
     };
 
-    const deletePackage = (id) => {
-        if (confirm(t("DeleteConfirm"))) {
-            setPackages(packages.filter((p) => p.id !== id));
+    const handleSubmit = async () => {
+        if (!form.name.trim()) {
+            alert(t("EnterPackageName"));
+            return;
+        }
+
+        const payload = {
+            name: form.name.trim(),
+            description: form.description?.trim() || "",
+            price: Number(form.price) || 0,
+            currency: form.currency || "AMD",
+        };
+
+        setIsSaving(true);
+        try {
+            if (editingPackage?.id) {
+                await apiPut(`/api/packages/${editingPackage.id}`, payload);
+            } else {
+                await apiPost("/api/packages", payload);
+            }
+            await fetchPackages();
+            closeModal();
+        } catch (err) {
+            console.error("Error saving package:", err);
+            alert(t("Failed to save package"));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const deletePackage = async (pkg) => {
+        if (!pkg?.id) return;
+        if (!confirm(t("DeleteConfirm"))) return;
+
+        try {
+            await apiDelete(`/api/packages/${pkg.id}`);
+            setPackages(prev => prev.filter(item => item.id !== pkg.id));
+        } catch (err) {
+            console.error("Error deleting package:", err);
+            alert(t("Failed to delete package"));
         }
     };
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen text-gray-800">
-            {/* Header */}
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">{t("Packages")}</h1>
                 <button
@@ -103,50 +125,55 @@ export default function PackagesPageContent() {
                 </button>
             </div>
 
-            {/* Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {packages.map((pkg) => (
-                    <div
-                        key={pkg.id}
-                        className="bg-white rounded-xl shadow p-4 flex flex-col text-center relative h-full"
-                    >
-                        <h2 className="text-lg font-semibold mb-1 text-gray-900">{pkg.title}</h2>
-                        <p className="text-purple-600 font-bold mb-2 flex items-center justify-center">{pkg.price.toLocaleString("en-US")} <TbCurrencyDram /></p>
-                        <ul className="text-gray-600 text-sm list-disc list-inside flex-grow my-2">
-                            {pkg.services.map((s, i) => (
-                                <li key={i} className="text-left">
-                                    {s}
-                                </li>
-                            ))}
-                        </ul>
+            {loading ? (
+                <div className="text-center py-10 text-gray-500">{t("Loading...")}</div>
+            ) : error ? (
+                <div className="text-center py-10 text-red-500">{error}</div>
+            ) : packages.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">{t("No data available")}</div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {packages.map((pkg) => (
+                        <div
+                            key={pkg.id}
+                            className="bg-white rounded-xl shadow p-4 flex flex-col text-center relative h-full"
+                        >
+                            <h2 className="text-lg font-semibold mb-1 text-gray-900">{pkg.name}</h2>
+                            <p className="text-purple-600 font-bold mb-2 flex items-center justify-center">
+                                {(Number(pkg.price) || 0).toLocaleString("en-US")} <TbCurrencyDram />
+                                <span className="text-xs text-gray-500 ml-2">{pkg.currency || "AMD"}</span>
+                            </p>
+                            <p className="text-gray-600 text-sm flex-grow">{pkg.description || t("No description")}</p>
 
-                        <div className="flex gap-2 mt-auto justify-center">
-                            <button
-                                onClick={() => openModal(pkg)}
-                                className="flex items-center gap-1 bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500 text-xs cursor-pointer"
-                            >
-                                <FiEdit2 size={14} /> {t("Edit")}
-                            </button>
-                            <button
-                                onClick={() => deletePackage(pkg.id)}
-                                className="flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
-                            >
-                                <FiTrash2 size={14} /> {t("Delete")}
-                            </button>
+                            <div className="flex gap-2 mt-4 justify-center">
+                                <button
+                                    onClick={() => openModal(pkg)}
+                                    className="flex items-center gap-1 bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500 text-xs cursor-pointer"
+                                >
+                                    <FiEdit2 size={14} /> {t("Edit")}
+                                </button>
+                                <button
+                                    onClick={() => deletePackage(pkg)}
+                                    className="flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
+                                >
+                                    <FiTrash2 size={14} /> {t("Delete")}
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
-            {/* Modal */}
             <PackageModal
                 t={t}
                 modalOpen={modalOpen}
-                setModalOpen={setModalOpen}
-                editId={editId}
+                setModalOpen={closeModal}
+                editId={editingPackage?.id}
                 form={form}
                 setForm={setForm}
                 handleSubmit={handleSubmit}
+                isSaving={isSaving}
+                currencyOptions={currencyOptions}
             />
         </div>
     );
