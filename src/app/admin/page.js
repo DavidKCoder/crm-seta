@@ -333,21 +333,21 @@ export default function AdminDashboardPage() {
                 <button
                     type="button"
                     onClick={() => setActiveTab('roles')}
-                    className={`px-4 py-2 font-medium ${activeTab === 'roles' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === 'roles' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                     {t('Roles')}
                 </button>
                 <button
                     type="button"
                     onClick={() => setActiveTab('statuses')}
-                    className={`px-4 py-2 font-medium ${activeTab === 'statuses' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === 'statuses' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                     {t('Statuses')}
                 </button>
                 <button
                     type="button"
                     onClick={() => setActiveTab('users')}
-                    className={`px-4 py-2 font-medium ${activeTab === 'users' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === 'users' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                     {t('Users')}
                 </button>

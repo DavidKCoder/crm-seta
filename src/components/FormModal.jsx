@@ -33,16 +33,30 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     if (!show || !mounted) return null;
 
     const getStatusName = (status) => {
-        if (!status) return '';
-        return typeof status === 'string' ? status : status.name || '';
+        if (!status) return "";
+        return typeof status === "string" ? status : status.name || "";
     };
 
     const validate = () => {
         const newErrors = {};
+
+        // Name validation
         if (!formState.name?.trim()) newErrors.name = t("Name is required");
-        if (!formState.email?.trim()) newErrors.email = t("Email is required");
+
+        // Email validation
+        if (!formState.email?.trim()) {
+            newErrors.email = t("Email is required");
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formState.email.trim())) {
+                newErrors.email = t("Please enter a valid email address");
+            }
+        }
+
+        // Phone validation
         if (!formState.phone?.trim()) newErrors.phone = t("Phone is required");
 
+        // Status validation
         const statusName = getStatusName(formState.status);
         if (!statusName.trim()) newErrors.status = t("Status is required");
 
@@ -53,7 +67,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     const clearFieldError = (fieldName) => {
         setErrors(prev => ({
             ...prev,
-            [fieldName]: undefined
+            [fieldName]: undefined,
         }));
     };
 
@@ -142,7 +156,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                                 if (err.path && err.message) {
                                     apiErrors[err.path] = err.message;
                                 } else if (err.message) {
-                                    apiErrors._form = (apiErrors._form ? apiErrors._form + ' ' : '') + err.message;
+                                    apiErrors._form = (apiErrors._form ? apiErrors._form + " " : "") + err.message;
                                 }
                             });
                         }
@@ -160,29 +174,29 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
 
                     // Final fallback for unknown errors
                     if (Object.keys(apiErrors).length === 0) {
-                        apiErrors._form = 'An unknown error occurred. Please try again.';
+                        apiErrors._form = "An unknown error occurred. Please try again.";
                     }
 
                     // Update errors state
                     setErrors(prev => ({
                         ...prev,
-                        ...apiErrors
+                        ...apiErrors,
                     }));
 
                     // Scroll to the first error
                     setTimeout(() => {
-                        const firstErrorField = Object.keys(apiErrors).find(key => key !== '_form');
+                        const firstErrorField = Object.keys(apiErrors).find(key => key !== "_form");
                         if (firstErrorField) {
                             const element = document.querySelector(`[name="${firstErrorField}"]`);
                             if (element) {
-                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                element.scrollIntoView({ behavior: "smooth", block: "center" });
                                 element.focus();
                             }
                         } else if (apiErrors._form) {
                             // If we only have a general error, scroll to the top of the form
-                            const formElement = document.querySelector('.bg-white.rounded-lg');
+                            const formElement = document.querySelector(".bg-white.rounded-lg");
                             if (formElement) {
-                                formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                formElement.scrollIntoView({ behavior: "smooth", block: "start" });
                             }
                         }
                     }, 100);
@@ -193,11 +207,11 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
             // Fallback: use provided onSave for non-client entities
             onSave(formState);
         } catch (error) {
-            console.error('Error saving data:', error);
+            console.error("Error saving data:", error);
             // Handle any unexpected errors
             setErrors(prev => ({
                 ...prev,
-                _error: error.message || 'An unexpected error occurred'
+                _error: error.message || "An unexpected error occurred",
             }));
         }
     };
@@ -275,7 +289,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                 ) : (
                     <div className="flex flex-col">
                         <input
-                            type={field === 'email' ? 'email' : 'text'}
+                            type={field === "email" ? "email" : "text"}
                             className={`border p-2 w-full rounded ${fieldError ? "border-red-500" : ""}`}
                             value={formState[fieldKey] || ""}
                             onChange={e => {
