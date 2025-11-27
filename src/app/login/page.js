@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { useRoles } from "@/components/RolesProvider";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/features/auth/authSlice";
@@ -13,11 +12,8 @@ export default function LoginPage() {
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const authStatus = useSelector((state) => state.auth.status);
-    const authError = useSelector((state) => state.auth.error);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { roles } = useRoles();
-    const roleOptions = Object.keys(roles || {});
     const [error, setError] = useState("");
 
     const onSubmit = async (e) => {

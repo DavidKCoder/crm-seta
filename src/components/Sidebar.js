@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import logo from "../../public/seta_logo.PNG";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
 import { TbUserDollar } from "react-icons/tb";
@@ -14,11 +14,14 @@ import {
     AiOutlineGift,
     AiOutlineBarChart,
     AiOutlineDashboard,
+    AiOutlineLogout,
 } from "react-icons/ai";
 import { useCanAccess } from "@/hooks/useCanAccess";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
+import { useDispatch } from "react-redux";
+import { logout } from "@/features/auth/authSlice";
 
 export default function Sidebar() {
     const { t, i18n } = useTranslation();
@@ -26,6 +29,8 @@ export default function Sidebar() {
     const { canAccess } = useCanAccess();
 
     const pathname = usePathname();
+    const router = useRouter();
+    const dispatch = useDispatch();
     const [collapsed, setCollapsed] = useState(false);
     const [windowWidth, setWindowWidth] = useState(0);
 
@@ -37,6 +42,26 @@ export default function Sidebar() {
     }, []);
 
     const sidebarWidth = collapsed ? 80 : Math.max(300, windowWidth * 0.15);
+
+    const handleLogout = async () => {
+        try {
+            await dispatch(logout());
+        } catch {
+        }
+
+        try {
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("auth_role");
+                localStorage.removeItem("auth_user");
+            }
+        } catch {
+        }
+
+        try {
+            router.push("/login");
+        } catch {
+        }
+    };
 
     const links = [
         { href: "/clients", label: t("Clients"), icon: <AiOutlineUser size={20} /> },
@@ -114,8 +139,19 @@ export default function Sidebar() {
                 )}
             </ul>
 
-            {/* Switch language внизу */}
-            <LanguageSwitcher collapsed={collapsed} />
+            <div className="mt-auto p-4 flex flex-col gap-3">
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full text-left flex items-center gap-3 p-3 rounded-md transition-colors duration-200 font-bold hover:bg-purple-400 hover:text-white cursor-pointer"
+                >
+                    <AiOutlineLogout size={20} />
+                    {!collapsed && <span>{t("Log out")}</span>}
+                </button>
+
+                {/* Switch language внизу */}
+                <LanguageSwitcher collapsed={collapsed} />
+            </div>
         </div>
 
     );

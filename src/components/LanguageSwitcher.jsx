@@ -25,7 +25,7 @@ export default function LanguageSwitcher({ collapsed }) {
     const currentLang = languages.find(lang => lang.code === i18n.language) || languages[0];
 
     return (
-        <div className="relative mt-auto p-4">
+        <div className="relative">
             <button
                 onClick={() => setOpen(!open)}
                 className="flex justify-between items-center border rounded px-3 py-2 text-gray-800 bg-gray-100 hover:bg-gray-100 transition cursor-pointer"
