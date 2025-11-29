@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
+import { DealAvatar } from "@/app/deals/components/DealAvatar";
 
 const currentUserBase = { name: "Guest", avatar: "https://i.pravatar.cc/32?img=14" };
 
@@ -26,17 +27,11 @@ export default function CurrentUser() {
     return (
         <div
             className="flex items-center h-10 rounded-md border border-transparent text-sm text-white transition-all shadow-sm hover:shadow-lg cursor-pointer">
-            <div className="flex items-center gap-2 px-3">
-                <Image
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    width={28}
-                    height={28}
-                    className="rounded-full"
-                />
+            <div className="flex items-center gap-2 p-2">
+                <DealAvatar deal={currentUser} />
                 <div className="grid leading-tight">
-                    <span className="text-gray-700 font-medium text-sm">{currentUser.name}</span>
-                    <span className="text-gray-500 text-[10px]">{currentUser.role}</span>
+                    <span className="text-gray-700 font-medium text-[16px]">{currentUser.name}</span>
+                    <span className="text-gray-500 text-[14px]">{currentUser.role}</span>
                 </div>
             </div>
         </div>

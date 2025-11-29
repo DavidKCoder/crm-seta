@@ -3,15 +3,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 import { useRoles } from "@/components/RolesProvider";
-import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { useTranslation } from "react-i18next";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { apiGet, apiPost, apiDelete } from "@/lib/apiClient";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchStatuses } from "@/features/statuses/statusesSlice";
 
 export default function RolesManager({ show, onClose }) {
     const { t } = useTranslation();
     const { roles, addRole, removeRole, setRoleAccess, getRoleConfig } = useRoles();
-    const { statuses } = useDealStatuses();
+    const dispatch = useDispatch();
+    const statusesItems = useSelector((state) => state.statuses?.items || []);
+    const statuses = useMemo(() => statusesItems.map((s) => s.name), [statusesItems]);
     const [newRole, setNewRole] = useState("");
     const [newDescription, setNewDescription] = useState("");
     const [backendRoles, setBackendRoles] = useState([]);
@@ -46,11 +49,14 @@ export default function RolesManager({ show, onClose }) {
             }
         };
         loadRoles();
+        if (show) {
+            dispatch(fetchStatuses());
+        }
         return () => {
             isMounted = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [show]);
+    }, [show, dispatch]);
 
     if (!show) return null;
     if (role !== "Admin") return null;

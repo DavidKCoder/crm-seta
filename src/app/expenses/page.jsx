@@ -4,8 +4,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/DataTable";
 import { useTranslation } from "react-i18next";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/apiClient";
+import { withRoleProtection } from "@/app/utils/withRoleProtection";
 
-export default function ExpensesPage() {
+function ExpensesPage() {
     const { t } = useTranslation();
     const [roles, setRoles] = useState([]);
     const [dynamicColumns, setDynamicColumns] = useState([]);
@@ -265,3 +266,5 @@ export default function ExpensesPage() {
         </div>
     );
 }
+
+export default withRoleProtection(ExpensesPage, "expenses");

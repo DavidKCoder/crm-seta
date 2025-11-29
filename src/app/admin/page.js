@@ -3,21 +3,24 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useRoles } from "@/components/RolesProvider";
-import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
-import { useCanAccess } from "@/hooks/useCanAccess";
 import { apiGet, apiPost, apiDelete, apiPut } from "@/lib/apiClient";
 import RolesTab from "./components/RolesTab";
 import StatusesTab from "./components/StatusesTab";
 import UsersTab from "./components/UsersTab";
+import { useRouter } from "next/navigation";
+import NotAccess from "@/components/NotAccess";
+import { useSelector } from "react-redux";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const MODULES = ["clients", "campaign", "deals", "expenses", "packages", "statistics"];
 const ADMIN_TOOLS = ["admin.dashboard", "manage.roles", "manage.statuses"];
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
+    const router = useRouter();
     const { roles, setRoleAccess, getRoleConfig } = useRoles();
-    const { role } = useCurrentUserRole();
-    const { canAccess } = useCanAccess();
+    const { isAdmin } = useIsAdmin();
+    const authUser = useSelector((state) => state.auth.user);
     
     // State management
     const [backendRoles, setBackendRoles] = useState([]);
@@ -131,7 +134,9 @@ export default function AdminDashboardPage() {
         }
     }, [roleToDelete, t]);
 
-    if (!canAccess(role, "admin.dashboard")) return null;
+    if (!isAdmin) {
+        return <NotAccess />;
+    }
 
     return (
         <div className="p-4">
@@ -361,7 +366,6 @@ export default function AdminDashboardPage() {
                     togglePermission={togglePermission}
                     toggleAllForRole={toggleAllForRole}
                     MODULES={MODULES}
-                    ADMIN_TOOLS={ADMIN_TOOLS}
                     handleDeleteClick={handleDeleteClick}
                     t={t}
                 />

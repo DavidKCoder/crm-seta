@@ -6,13 +6,11 @@ import { FiMail, FiEdit2, FiTrash, FiPhone, FiUserPlus } from "react-icons/fi";
 import { DealAvatar } from "@/app/deals/components/DealAvatar";
 import { useTranslation } from "react-i18next";
 import { DealDetailsModal } from "@/app/deals/components/DealDetailsModal";
-import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { TbBuildingStore, TbUserBolt } from "react-icons/tb";
 import { PiHandshake } from "react-icons/pi";
 
 export function DealCard({ deal, st, handleEdit, handleDelete }) {
     const { t } = useTranslation();
-    const { getStatusStyle } = useDealStatuses();
     const [menuOpen, setMenuOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const menuRef = useRef(null);
@@ -46,7 +44,7 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
         <>
             <div
                 key={deal.id}
-                className={`group bg-white rounded-lg shadow p-2 flex flex-col gap-2 hover:bg-gray-50 ${getStatusStyle(st)}`}
+                className="group bg-white rounded-lg shadow p-2 flex flex-col gap-2 hover:bg-gray-50"
             >
                 <div className="flex justify-between items-center relative">
                     <div className="flex flex-col space-y-1 w-full">

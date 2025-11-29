@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useDealStatuses } from "@/components/DealStatusesProvider";
 
 export default function DealDropdown({ dealsList, formState, setFormState }) {
     const { t } = useTranslation();
-    const { getStatusStyle } = useDealStatuses();
+
     const [open, setOpen] = useState(false);
 
     const handleSelect = (dealId) => {
@@ -35,7 +34,7 @@ export default function DealDropdown({ dealsList, formState, setFormState }) {
                         <span>{`${selectedDeal.name}`}</span>
                         {selectedDeal.status && (
                             <span
-                                className={`px-2 py-0.5 rounded text-xs ${getStatusStyle(getStatusName(selectedDeal.status))}`}
+                                className="px-2 py-0.5 rounded text-xs"
                                 style={{
                                     backgroundColor: selectedDeal.status.colorHex ? `${selectedDeal.status.colorHex}20` : "transparent",
                                     color: selectedDeal.status.colorHex || "inherit",

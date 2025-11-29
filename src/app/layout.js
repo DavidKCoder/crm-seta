@@ -1,7 +1,6 @@
 import { Geist, Lato } from "next/font/google";
 import "./globals.css";
 import I18nProvider from "@/components/I18nProvider";
-import { DealStatusesProvider } from "@/components/DealStatusesProvider";
 import AppShell from "@/components/AppShell";
 import { RolesProvider } from "@/components/RolesProvider";
 import ReduxProvider from "@/components/ReduxProvider";
@@ -21,11 +20,9 @@ export default function RootLayout({ children }) {
         <ReduxProvider>
             <I18nProvider>
                 <RolesProvider>
-                    <DealStatusesProvider>
-                        <AppShell>
-                            {children}
-                        </AppShell>
-                    </DealStatusesProvider>
+                    <AppShell>
+                        {children}
+                    </AppShell>
                 </RolesProvider>
             </I18nProvider>
         </ReduxProvider>

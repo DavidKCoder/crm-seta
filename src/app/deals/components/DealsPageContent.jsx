@@ -7,20 +7,16 @@ import DealModal from "@/app/deals/components/DealModal";
 import { StatusDropdown } from "@/app/deals/components/StatusDropdown";
 import { useTranslation } from "react-i18next";
 import { DealCard } from "@/app/deals/components/DealCard";
-import { useDealStatuses } from "@/components/DealStatusesProvider";
-import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
-import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDeals, fetchDealById, createDeal, updateDeal, deleteDeal } from "@/features/deals/dealsSlice";
 import { fetchClients } from "@/features/clients/clientsSlice";
 import { fetchCampaigns } from "@/features/campaigns/campaignsSlice";
+import { fetchStatuses } from "@/features/statuses/statusesSlice";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 export default function DealsPageContent() {
     const { t } = useTranslation();
-    const router = useRouter();
-    const { getStatusesForRole, getStatusStyle } = useDealStatuses();
-    const { role } = useCurrentUserRole();
-    const availableStatuses = getStatusesForRole(role);
+    const { isAdmin } = useIsAdmin();
     const dispatch = useDispatch();
     const deals = useSelector((state) => state.deals.items);
     const dealsStatus = useSelector((state) => state.deals.status);
@@ -31,7 +27,8 @@ export default function DealsPageContent() {
     const campaignsStatus = useSelector((state) => state.campaigns.status);
     const authUser = useSelector((state) => state.auth.user);
     const dealStatusesState = useSelector((state) => state.statuses);
-    const [selectedStatuses, setSelectedStatuses] = useState(availableStatuses);
+    const statusesItems = dealStatusesState?.items || [];
+    const [selectedStatuses, setSelectedStatuses] = useState(statusesItems.map((s) => s.id));
 
     const [showModal, setShowModal] = useState(false);
     const [editingDeal, setEditingDeal] = useState(null);
@@ -57,8 +54,14 @@ export default function DealsPageContent() {
     const [successMessage, setSuccessMessage] = useState("");
 
     useEffect(() => {
-        setSelectedStatuses(availableStatuses);
-    }, [availableStatuses]);
+        setSelectedStatuses(statusesItems.map((s) => s.id));
+    }, [statusesItems]);
+
+    useEffect(() => {
+        if (dealStatusesState.status === "idle") {
+            dispatch(fetchStatuses());
+        }
+    }, [dispatch, dealStatusesState.status]);
 
     const today = useMemo(() => new Date(), []);
     const defaultStart = useMemo(() => {
@@ -139,8 +142,8 @@ export default function DealsPageContent() {
         };
 
         // If statuses are available, select the first one
-        if (availableStatuses && availableStatuses.length > 0) {
-            defaultValues.statusId = availableStatuses[0].id;
+        if (statusesItems && statusesItems.length > 0) {
+            defaultValues.statusId = statusesItems[0].id;
         }
 
         setFormData(prev => ({
@@ -342,8 +345,6 @@ export default function DealsPageContent() {
             setShowModal(false);
             resetForm();
         } catch (error) {
-            console.error("Error saving deal:", error);
-            // Handle any other unexpected errors
             setFormData(prev => ({
                 ...prev,
                 errors: { _form: error.message || "An unexpected error occurred" },
@@ -351,11 +352,11 @@ export default function DealsPageContent() {
         }
     };
 
-    const toggleStatus = (st) => {
-        if (selectedStatuses.includes(st)) {
-            setSelectedStatuses(selectedStatuses.filter((s) => s !== st));
+    const toggleStatus = (statusId) => {
+        if (selectedStatuses.includes(statusId)) {
+            setSelectedStatuses(selectedStatuses.filter((s) => s !== statusId));
         } else {
-            setSelectedStatuses([...selectedStatuses, st]);
+            setSelectedStatuses([...selectedStatuses, statusId]);
         }
     };
 
@@ -385,7 +386,7 @@ export default function DealsPageContent() {
                 <div className="flex justify-between items-center gap-5">
                     <h1 className="text-2xl font-bold text-gray-900">{t("Deals")}</h1>
                     <StatusDropdown
-                        statuses={availableStatuses}
+                        statuses={statusesItems}
                         selectedStatuses={selectedStatuses}
                         toggleStatus={toggleStatus}
                         setSelectedStatuses={setSelectedStatuses}
@@ -425,16 +426,20 @@ export default function DealsPageContent() {
             </div>
 
             <div className="flex gap-4 overflow-x-auto">
-                {availableStatuses
-                    .filter((st) => selectedStatuses.includes(st))
+                {statusesItems
+                    .filter((st) => selectedStatuses.includes(st.id))
                     .map((st, i) => {
-                        const stageDeals = deals.filter((d) => (d.status?.name || d.status) === st);
+                        const stageDeals = deals.filter((d) => {
+                            const dealStatusId = d.status?.id || d.statusId;
+                            const dealStatusName = d.status?.name || d.status;
+                            return dealStatusId === st.id || dealStatusName === st.name;
+                        });
                         const totalValue = stageDeals.reduce(
                             (sum, d) => sum + Number(d.value),
                             0,
                         );
 
-                        const colorHex = dealStatusesState?.items.find((status) => status.name === st)?.colorHex;
+                        const colorHex = st.colorHex;
 
                         return (
                             <div
@@ -443,8 +448,13 @@ export default function DealsPageContent() {
                             >
                                 <h2 className="p-2 rounded-lg bg-white text-black border border-gray-300 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full">{" "}</div>
-                                        {st}
+                                        <div
+                                            className="w-3 h-3 rounded-full"
+                                            style={{ backgroundColor: colorHex || "#9ca3af" }}
+                                        >
+                                            {" "}
+                                        </div>
+                                        {st.name}
                                     </div>
                                     {stageDeals.length > 0 &&
                                         <div
@@ -459,7 +469,7 @@ export default function DealsPageContent() {
                                     <div
                                         className="border border-gray-50 bg-white shadow rounded-xl p-4 flex flex-col gap-3"
                                     >
-                                        <div
+                                        {isAdmin && <div
                                             className="text-left text-sm font-bold flex items-center gap-1 text-gray-900"
                                         >
                                             {t("Total")}
@@ -467,7 +477,7 @@ export default function DealsPageContent() {
                                                 {totalValue.toLocaleString("en-US")} <TbCurrencyDram />
                                             </div>
                                             / {stageDeals.length} {t("deals")}
-                                        </div>
+                                        </div>}
 
                                         {stageDeals.map((deal, i) => (
                                             <DealCard

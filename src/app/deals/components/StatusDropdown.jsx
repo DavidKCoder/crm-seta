@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useDealStatuses } from "@/components/DealStatusesProvider";
 
 export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSelectedStatuses }) {
     const { t } = useTranslation();
-    const { getStatusStyle } = useDealStatuses();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -19,13 +17,13 @@ export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSe
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const allSelected = selectedStatuses.length === statuses.length;
+    const allSelected = Array.isArray(statuses) && statuses.length > 0 && selectedStatuses.length === statuses.length;
 
     const handleSelectAll = () => {
         if (allSelected) {
             setSelectedStatuses([]);
         } else {
-            setSelectedStatuses(statuses);
+            setSelectedStatuses(statuses.map((st) => st.id));
         }
     };
 
@@ -63,19 +61,22 @@ export function StatusDropdown({ statuses, selectedStatuses, toggleStatus, setSe
                         </span>
                     </label>
 
-                    {statuses.map((st, i) => (
+                    {statuses.map((st) => (
                         <label
-                            key={i}
+                            key={st.id}
                             className="flex items-center gap-2 px-3 py-1 cursor-pointer hover:bg-gray-50 text-sm"
                         >
                             <input
                                 type="checkbox"
-                                checked={selectedStatuses.includes(st)}
-                                onChange={() => toggleStatus(st)}
-                                className={`w-4 h-4 rounded border border-gray-300 accent-gray-100 cursor-pointer ${getStatusStyle(st)}`}
+                                checked={selectedStatuses.includes(st.id)}
+                                onChange={() => toggleStatus(st.id)}
+                                className="w-4 h-4 rounded border border-gray-300 accent-gray-100 cursor-pointer"
                             />
-                            <span className={`px-2 py-0.5 rounded-md ${getStatusStyle(st)}`}>
-                                {st}
+                            <span
+                                className="px-2 py-0.5 rounded-md text-white text-xs font-medium"
+                                style={{ backgroundColor: st.colorHex || "#6b7280" }}
+                            >
+                                {st.name}
                             </span>
                         </label>
                     ))}

@@ -130,7 +130,23 @@ const authSlice = createSlice({
                 state.error = action.payload || action.error?.message || "Login failed";
             })
             .addCase(me.fulfilled, (state, action) => {
-                state.user = action.payload?.data || action.payload?.user || action.payload || null;
+                const user = action.payload?.data || action.payload?.user || action.payload || null;
+                state.user = user;
+                try {
+                    if (user) {
+                        // Persist full user for later hydration
+                        localStorage.setItem("auth_user", JSON.stringify(user));
+
+                        // Persist normalized role for permission checks
+                        if (user.role) {
+                            const normalizedRole = String(user.role).trim();
+                            if (normalizedRole) {
+                                localStorage.setItem("auth_role", normalizedRole);
+                            }
+                        }
+                    }
+                } catch {
+                }
             })
             .addCase(logout.fulfilled, (state) => {
                 state.user = null;

@@ -13,6 +13,7 @@ export function RolesProvider({ children }) {
             const raw = localStorage.getItem("roles_config");
             if (raw) {
                 const parsed = JSON.parse(raw);
+                console.log("parsed", parsed);
                 if (parsed && typeof parsed === "object") {
                     setRoles((prev) => ({ ...prev, ...parsed }));
                 }
@@ -57,7 +58,15 @@ export function RolesProvider({ children }) {
         }));
     };
 
-    const getRoleConfig = (name) => roles[name] || null;
+    const getRoleConfig = (name) => {
+        const n = String(name || "").trim();
+        if (!n) return null;
+        if (roles[n]) return roles[n];
+
+        const lower = n.toLowerCase();
+        const matchedKey = Object.keys(roles).find((key) => key.toLowerCase() === lower);
+        return matchedKey ? roles[matchedKey] : null;
+    };
 
     const value = useMemo(
         () => ({ roles, addRole, removeRole, setRoleAccess, setRoleRestricted, getRoleConfig }),

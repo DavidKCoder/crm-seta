@@ -11,7 +11,6 @@ import FormModal from "@/components/FormModal";
 import ExpenseFormModal from "@/components/ExpenseFormModal";
 import Alert from "@/components/Alert";
 // Remove hardcoded dealsData import as we'll use props
-import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { deleteClient } from "@/features/clients/clientsSlice";
 import { deleteCampaign } from "@/features/campaigns/campaignsSlice";
 import { FaFacebookF, FaGlobe, FaInstagram } from "react-icons/fa";
@@ -307,7 +306,6 @@ export default function DataTable({
                                                 })()
                                             ) : col.key === "joiningDate" ? (
                                                 (() => {
-                                                    console.log("item.joiningDate", item.joiningDate);
                                                     const raw = new Intl.DateTimeFormat("en-US").format(new Date(item.joiningDate));
                                                     return raw ? String(raw).slice(0, 10) : "";
                                                 })()

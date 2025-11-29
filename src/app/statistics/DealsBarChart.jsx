@@ -12,12 +12,12 @@ import {
     Cell,
 } from "recharts";
 import { useTranslation } from "react-i18next";
-import { useDealStatuses } from "@/components/DealStatusesProvider";
 import { apiGet } from "@/lib/apiClient";
+import { useSelector } from "react-redux";
 
 export default function DealsBarChart() {
     const { t } = useTranslation();
-    const { getStatusStyle } = useDealStatuses();
+    const statusesItems = useSelector((state) => state.statuses?.items || []);
 
     const today = new Date();
     const oneMonthAgo = new Date();
@@ -137,24 +137,12 @@ export default function DealsBarChart() {
                     />
                     <Bar dataKey={mode}>
                         {data.map((entry, index) => {
-                            const colorClass = getStatusStyle(entry.stage);
-                            const bgColor = colorClass.split(" ")[0].replace("bg-", "");
-                            const COLORS_MAP = {
-                                "sky-50": "#0ea5e9",
-                                "amber-50": "#d97706",
-                                "emerald-50": "#059669",
-                                "violet-50": "#7c3aed",
-                                "fuchsia-50": "#c026d3",
-                                "indigo-50": "#4338ca",
-                                "cyan-50": "#06b6d4",
-                                "green-50": "#16a34a",
-                                "rose-50": "#be123c",
-                                "gray-50": "#374151",
-                            };
+                            const status = statusesItems.find((s) => s.name === entry.stage);
+                            const fill = status?.colorHex || "#6366f1";
                             return (
                                 <Cell
                                     key={`cell-${index}`}
-                                    fill={COLORS_MAP[bgColor] || "#ccc"}
+                                    fill={fill}
                                 />
                             );
                         })}
