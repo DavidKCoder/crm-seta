@@ -85,11 +85,12 @@ export default function Sidebar() {
             {/* Header */}
             <div className="flex items-center justify-between p-4">
                 {!collapsed && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 bg-white rounded-md">
                         <Image src={logo} alt="logo" width={80} height={80} className="rounded-full" />
-                        <h1 className="text-xl font-bold">CRM</h1>
                     </div>
                 )}
+                <h1 className="text-2xl font-bold">CRM</h1>
+
                 <button
                     onClick={() => setCollapsed(!collapsed)}
                     className="cursor-pointer"
