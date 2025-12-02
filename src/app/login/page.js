@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/features/auth/authSlice";
+import { IoEyeOffOutline, IoEyeOff } from "react-icons/io5";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false); // new state
 
     const onSubmit = async (e) => {
         e.preventDefault();
@@ -51,25 +53,37 @@ export default function LoginPage() {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 w-full border rounded px-3 py-2"
+                            className="mt-1 w-full border rounded px-3 py-2 text-black"
                             placeholder="name@example.com"
                         />
                     </div>
+
                     <div className="flex flex-col gap-1">
                         <label className="text-sm text-gray-700">{t("Password")}</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 w-full border rounded px-3 py-2"
-                            placeholder="••••••••"
-                        />
+                        <div className="mt-1 relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full border rounded px-3 py-2 pr-10 text-black"
+                                placeholder="••••••••"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute inset-y-0 right-0 flex items-center px-3 cursor-pointer text-black "
+                            >
+                                {showPassword ? <IoEyeOff size={20} /> : <IoEyeOffOutline size={20}/>}
+                            </button>
+                        </div>
                     </div>
+
                     {error && (
                         <div className="mt-2 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
                             {error}
                         </div>
                     )}
+
                     <button
                         type="submit"
                         className="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg cursor-pointer disabled:opacity-60"
