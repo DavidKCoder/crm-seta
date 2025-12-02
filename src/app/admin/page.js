@@ -7,21 +7,20 @@ import { apiGet, apiPost, apiDelete, apiPut } from "@/lib/apiClient";
 import RolesTab from "./components/RolesTab";
 import StatusesTab from "./components/StatusesTab";
 import UsersTab from "./components/UsersTab";
-import { useRouter } from "next/navigation";
 import NotAccess from "@/components/NotAccess";
-import { useSelector } from "react-redux";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { fetchStatuses } from "@/features/statuses/statusesSlice";
+import { useDispatch } from "react-redux";
 
 const MODULES = ["clients", "campaign", "deals", "expenses", "packages", "statistics"];
 const ADMIN_TOOLS = ["admin.dashboard", "manage.roles", "manage.statuses"];
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
-    const router = useRouter();
     const { roles, setRoleAccess, getRoleConfig } = useRoles();
     const { isAdmin } = useIsAdmin();
-    const authUser = useSelector((state) => state.auth.user);
-    
+    const dispatch = useDispatch();
+
     // State management
     const [backendRoles, setBackendRoles] = useState([]);
     const [activeTab, setActiveTab] = useState("roles");
@@ -49,14 +48,15 @@ export default function AdminDashboardPage() {
     // Initialize roles on mount
     useEffect(() => {
         loadRoles();
-    }, [loadRoles]);
+        dispatch(fetchStatuses(""));
+    }, [dispatch, loadRoles]);
 
     // Handle role creation
     const handleCreateRole = useCallback(async (e) => {
         e?.preventDefault();
         setError("");
         setSuccess("");
-        
+
         if (!newRole.name.trim()) {
             setError(t("Role name is required"));
             return;
@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
         try {
             await apiPost("/api/roles", {
                 name: newRole.name.trim(),
-                description: newRole.description.trim()
+                description: newRole.description.trim(),
             });
 
             setSuccess(t(`Role "${newRole.name}" created successfully!`));
@@ -116,8 +116,8 @@ export default function AdminDashboardPage() {
             await apiDelete(`/api/roles/${roleId}`);
 
             setSuccess(t(`Role "${roleToDelete.name}" deleted successfully`));
-            setBackendRoles(prev => 
-                prev.filter(r => (r.id || r._id) !== roleId)
+            setBackendRoles(prev =>
+                prev.filter(r => (r.id || r._id) !== roleId),
             );
 
             const timer = setTimeout(() => {
@@ -141,18 +141,18 @@ export default function AdminDashboardPage() {
     return (
         <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-gray-900">{t('Admin Dashboard')}</h1>
-                {activeTab === 'roles' && (
+                <h1 className="text-2xl font-bold text-gray-900">{t("Admin Dashboard")}</h1>
+                {activeTab === "roles" && (
                     <button
                         type="button"
                         onClick={() => {
                             setIsCreatingRole(true);
-                            setError('');
-                            setSuccess('');
+                            setError("");
+                            setSuccess("");
                         }}
                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     >
-                        {t('Create Role')}
+                        {t("Create Role")}
                     </button>
                 )}
             </div>
@@ -161,7 +161,7 @@ export default function AdminDashboardPage() {
             {roleToDelete && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg w-full max-w-md text-black">
-                        <h2 className="text-xl font-bold mb-4">{t('Delete Role')}</h2>
+                        <h2 className="text-xl font-bold mb-4">{t("Delete Role")}</h2>
 
                         {error && (
                             <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
@@ -176,9 +176,9 @@ export default function AdminDashboardPage() {
                         )}
 
                         <p className="mb-6">
-                            {t('Are you sure you want to delete the role')}{' '}
-                            <span className="font-semibold">{roleToDelete?.name}</span>?{' '}
-                            {t('This action cannot be undone.')}
+                            {t("Are you sure you want to delete the role")}{" "}
+                            <span className="font-semibold">{roleToDelete?.name}</span>?{" "}
+                            {t("This action cannot be undone.")}
                         </p>
 
                         <div className="flex justify-end space-x-2">
@@ -186,18 +186,18 @@ export default function AdminDashboardPage() {
                                 type="button"
                                 onClick={() => {
                                     setRoleToDelete(null);
-                                    setError('');
-                                    setSuccess('');
+                                    setError("");
+                                    setSuccess("");
                                 }}
                                 className="px-4 py-2 border rounded hover:bg-gray-100 cursor-pointer"
                                 disabled={isSubmitting}
                             >
-                                {t('Cancel')}
+                                {t("Cancel")}
                             </button>
                             <button
                                 type="button"
                                 onClick={confirmDeleteRole}
-                                className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? (
@@ -222,10 +222,10 @@ export default function AdminDashboardPage() {
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        {t('Deleting...')}
+                                        {t("Deleting...")}
                                     </span>
                                 ) : (
-                                    t('Delete')
+                                    t("Delete")
                                 )}
                             </button>
                         </div>
@@ -237,7 +237,7 @@ export default function AdminDashboardPage() {
             {isCreatingRole && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">{t('Create New Role')}</h2>
+                        <h2 className="text-xl font-bold mb-4">{t("Create New Role")}</h2>
 
                         {error && (
                             <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
@@ -254,7 +254,7 @@ export default function AdminDashboardPage() {
                         <form onSubmit={handleCreateRole}>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium mb-1">
-                                    {t('Role Name')} <span className="text-red-500">*</span>
+                                    {t("Role Name")} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -262,21 +262,21 @@ export default function AdminDashboardPage() {
                                     value={newRole.name}
                                     onChange={(e) => setNewRole((prev) => ({ ...prev, name: e.target.value }))}
                                     className="w-full p-2 border rounded"
-                                    placeholder={t('Enter role name')}
+                                    placeholder={t("Enter role name")}
                                     required
                                 />
                             </div>
 
                             <div className="mb-4">
                                 <label className="block text-sm font-medium mb-1">
-                                    {t('Description')}
+                                    {t("Description")}
                                 </label>
                                 <textarea
                                     name="description"
                                     value={newRole.description}
                                     onChange={(e) => setNewRole((prev) => ({ ...prev, description: e.target.value }))}
                                     className="w-full p-2 border rounded"
-                                    placeholder={t('Enter role description')}
+                                    placeholder={t("Enter role description")}
                                     rows="3"
                                 />
                             </div>
@@ -286,17 +286,17 @@ export default function AdminDashboardPage() {
                                     type="button"
                                     onClick={() => {
                                         setIsCreatingRole(false);
-                                        setNewRole({ name: '', description: '' });
-                                        setError('');
-                                        setSuccess('');
+                                        setNewRole({ name: "", description: "" });
+                                        setError("");
+                                        setSuccess("");
                                     }}
                                     className="px-4 py-2 border rounded hover:bg-gray-100 cursor-pointer"
                                 >
-                                    {t('Cancel')}
+                                    {t("Cancel")}
                                 </button>
                                 <button
                                     type="submit"
-                                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting ? (
@@ -321,10 +321,10 @@ export default function AdminDashboardPage() {
                                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                                 ></path>
                                             </svg>
-                                            {t('Creating...')}
+                                            {t("Creating...")}
                                         </span>
                                     ) : (
-                                        t('Create')
+                                        t("Create")
                                     )}
                                 </button>
                             </div>
@@ -337,29 +337,29 @@ export default function AdminDashboardPage() {
             <div className="flex border-b border-gray-200 mb-6">
                 <button
                     type="button"
-                    onClick={() => setActiveTab('roles')}
-                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === 'roles' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    onClick={() => setActiveTab("roles")}
+                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === "roles" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
                 >
-                    {t('Roles')}
+                    {t("Roles")}
                 </button>
                 <button
                     type="button"
-                    onClick={() => setActiveTab('statuses')}
-                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === 'statuses' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    onClick={() => setActiveTab("statuses")}
+                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === "statuses" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
                 >
-                    {t('Statuses')}
+                    {t("Statuses")}
                 </button>
                 <button
                     type="button"
-                    onClick={() => setActiveTab('users')}
-                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === 'users' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    onClick={() => setActiveTab("users")}
+                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === "users" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
                 >
-                    {t('Users')}
+                    {t("Users")}
                 </button>
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'roles' && (
+            {activeTab === "roles" && (
                 <RolesTab
                     roles={roles}
                     backendRoles={backendRoles}
@@ -371,11 +371,9 @@ export default function AdminDashboardPage() {
                 />
             )}
 
-            {activeTab === 'statuses' && canAccess(role, 'manage.statuses') && (
-                <StatusesTab />
-            )}
+            {activeTab === "statuses" && <StatusesTab />}
 
-            {activeTab === 'users' && (
+            {activeTab === "users" && (
                 <UsersTab
                     backendRoles={backendRoles}
                     apiPost={apiPost}
