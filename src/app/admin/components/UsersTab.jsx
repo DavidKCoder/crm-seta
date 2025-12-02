@@ -301,26 +301,38 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                         {t("Roles")} <span className="text-red-500">*</span>
                     </label>
                     <div className="space-y-2">
-                        {backendRoles.map((role) => (
-                            <div key={role.id} className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id={`role-${role.id}`}
-                                    checked={newUser.roleIds.includes(role.id)}
-                                    onChange={() => toggleUserRole(role.id)}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor={`role-${role.id}`} className="ml-2 block text-sm text-gray-700">
-                                    {role.name}
-                                </label>
-                            </div>
-                        ))}
-                        {backendRoles.length === 0 && (
+                        {backendRoles.length > 0 ? (
+                            backendRoles
+                                .filter((role) => role.name !== "Admin")
+                                .map((role) => {
+                                    const { id, name } = role;
+                                    const isChecked = newUser.roleIds.includes(id);
+
+                                    return (
+                                        <div key={id} className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id={`role-${id}`}
+                                                checked={isChecked}
+                                                onChange={() => toggleUserRole(id)}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                            />
+                                            <label
+                                                htmlFor={`role-${id}`}
+                                                className="ml-2 text-sm text-gray-700"
+                                            >
+                                                {name}
+                                            </label>
+                                        </div>
+                                    );
+                                })
+                        ) : (
                             <p className="text-sm text-gray-500">
                                 {t("No roles available. Please create roles first.")}
                             </p>
                         )}
                     </div>
+
                 </div>
 
                 <div className="flex items-center">
@@ -410,20 +422,23 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                                 {t("Roles")} <span className="text-red-500">*</span>
                             </label>
                             <div className="space-y-2">
-                                {backendRoles.map((role) => (
-                                    <div key={role.id} className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            id={`edit-role-${role.id}`}
-                                            checked={editState.roleIds.includes(role.id)}
-                                            onChange={() => toggleEditRole(role.id)}
-                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <label htmlFor={`edit-role-${role.id}`} className="ml-2 block text-sm text-gray-700">
-                                            {role.name}
-                                        </label>
-                                    </div>
-                                ))}
+                                {backendRoles.map((role) => {
+                                    return (
+                                        <div key={role.id} className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id={`edit-role-${role.id}`}
+                                                checked={editState.roleIds.includes(role.id)}
+                                                onChange={() => toggleEditRole(role.id)}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                            />
+                                            <label htmlFor={`edit-role-${role.id}`}
+                                                   className="ml-2 block text-sm text-gray-700">
+                                                {role.name}
+                                            </label>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -443,7 +458,12 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                         <div className="flex justify-end gap-2">
                             <button
                                 type="button"
-                                onClick={() => { setSelectedUser(null); setEditState(null); setEditError(""); setEditSuccess(""); }}
+                                onClick={() => {
+                                    setSelectedUser(null);
+                                    setEditState(null);
+                                    setEditError("");
+                                    setEditSuccess("");
+                                }}
                                 className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
                             >
                                 {t("Cancel")}
@@ -525,37 +545,51 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                             </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredUsers.map((user) => (
-                                <tr key={user.id || user._id} className="hover:bg-gray-50">
-                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {(user.firstName || "") + " " + (user.lastName || "")}
-                                    </td>
-                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {user.email}
-                                    </td>
-                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                        {Array.isArray(user.roles)
-                                            ? user.roles.map((r) => r.name || r).join(", ")
-                                            : ""}
-                                    </td>
-                                    <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleEditSelect(user)}
-                                            className="text-blue-600 hover:text-blue-900"
-                                        >
-                                            {t("Edit")}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteUser(user)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            {t("Delete")}
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {filteredUsers.map((user) => {
+                                const { id, _id, firstName, lastName, email, roles = [] } = user;
+
+                                const isAdmin = roles.some((role) => role?.name === "Admin");
+                                const roleNames = roles.map((r) => r?.name || r).join(", ");
+                                const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
+
+                                return (
+                                    <tr key={id || _id} className="hover:bg-gray-50">
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            {name || "-"}
+                                        </td>
+
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            {email}
+                                        </td>
+
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            {roleNames}
+                                        </td>
+
+                                        <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                            {!isAdmin && (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleEditSelect(user)}
+                                                        className="text-blue-600 hover:text-blue-900"
+                                                    >
+                                                        {t("Edit")}
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteUser(user)}
+                                                        className="text-red-600 hover:text-red-900"
+                                                    >
+                                                        {t("Delete")}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             </tbody>
                         </table>
                     </div>
