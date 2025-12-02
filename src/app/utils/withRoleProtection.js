@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // <--- тут изменили
-import { FiLock } from "react-icons/fi";
+import { useRouter } from "next/navigation"; 
 import NotAccess from "@/components/NotAccess";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
-import { useCanAccess } from "@/hooks/useCanAccess";
 import { useSelector } from "react-redux";
 
 export function withRoleProtection(Component, resourceKey) {
@@ -14,22 +12,29 @@ export function withRoleProtection(Component, resourceKey) {
         const [initialized, setInitialized] = useState(false);
         const [hasAccess, setHasAccess] = useState(false);
         const { role } = useCurrentUserRole();
-        const { canAccess } = useCanAccess();
         const authUser = useSelector((state) => state.auth.user);
 
         useEffect(() => {
             let access = false;
 
-            // Prefer backend roles array if available
+            // Access is controlled only by backend roles on authUser
             if (authUser && Array.isArray(authUser.roles) && authUser.roles.length > 0) {
                 access = authUser.roles.some((r) => {
-                    const name = String(r?.name || "").trim();
-                    if (!name) return false;
-                    return canAccess(name, resourceKey);
+                    const accessArr = Array.isArray(r?.access) ? r.access : [];
+
+                    if (accessArr.includes("all")) return true;
+
+                    if (resourceKey === "deals") {
+                        return (
+                            accessArr.includes("deals") ||
+                            accessArr.some((perm) => typeof perm === "string" && perm.startsWith("deals."))
+                        );
+                    }
+
+                    return accessArr.includes(resourceKey);
                 });
             } else {
-                // Fallback to single role string (e.g., from auth_role)
-                access = canAccess(role, resourceKey);
+                access = false;
             }
 
             setHasAccess(access);
@@ -38,7 +43,7 @@ export function withRoleProtection(Component, resourceKey) {
             if (!access) {
                 // you could redirect if needed, currently just show NotAccess
             }
-        }, [authUser, role, resourceKey, canAccess]);
+        }, [authUser, role, resourceKey]);
 
         if (!initialized) {
             return null;

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useRoles } from "@/components/RolesProvider";
 import { apiGet, apiPost, apiDelete, apiPut } from "@/lib/apiClient";
 import RolesTab from "./components/RolesTab";
 import StatusesTab from "./components/StatusesTab";
@@ -17,7 +16,6 @@ const ADMIN_TOOLS = ["admin.dashboard", "manage.roles", "manage.statuses"];
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
-    const { roles, setRoleAccess, getRoleConfig } = useRoles();
     const { isAdmin } = useIsAdmin();
     const dispatch = useDispatch();
 
@@ -82,21 +80,56 @@ export default function AdminDashboardPage() {
         }
     }, [newRole, t, loadRoles]);
 
-    // Toggle permission for a role
-    const togglePermission = useCallback((roleName, key) => {
-        const cfg = getRoleConfig(roleName) || { access: [] };
-        const acc = new Set(cfg.access || []);
-        if (acc.has("all")) acc.delete("all");
-        if (acc.has(key)) acc.delete(key); else acc.add(key);
-        setRoleAccess(roleName, Array.from(acc));
-    }, [getRoleConfig, setRoleAccess]);
+    // Toggle permission for a role (persists to backend)
+    const togglePermission = useCallback(async (role, key) => {
+        const currentAccess = Array.isArray(role.access) ? role.access : [];
+        const setAccess = new Set(currentAccess);
+        if (setAccess.has(key)) {
+            setAccess.delete(key);
+        } else {
+            setAccess.add(key);
+        }
+        const nextAccess = Array.from(setAccess);
 
-    // Toggle all permissions for a role
-    const toggleAllForRole = useCallback((roleName) => {
-        const cfg = getRoleConfig(roleName) || { access: [] };
-        const hasAll = (cfg.access || []).includes("all");
-        setRoleAccess(roleName, hasAll ? [] : ["all"]);
-    }, [getRoleConfig, setRoleAccess]);
+        try {
+            const roleId = role.id || role._id;
+            await apiPut(`/api/roles/${roleId}`, {
+                name: role.name,
+                description: role.description,
+                access: nextAccess,
+            });
+
+            setBackendRoles((prev) =>
+                prev.map((r) => (r.id === roleId || r._id === roleId ? { ...r, access: nextAccess } : r)),
+            );
+        } catch (error) {
+            console.error("Error updating role permissions:", error);
+            setError(error.response?.data?.message || error.message || t("Failed to update role permissions"));
+        }
+    }, [t]);
+
+    // Toggle all permissions for a role (persists to backend)
+    const toggleAllForRole = useCallback(async (role) => {
+        const currentAccess = Array.isArray(role.access) ? role.access : [];
+        const hasAll = MODULES.every((m) => currentAccess.includes(m));
+        const nextAccess = hasAll ? [] : MODULES;
+
+        try {
+            const roleId = role.id || role._id;
+            await apiPut(`/api/roles/${roleId}`, {
+                name: role.name,
+                description: role.description,
+                access: nextAccess,
+            });
+
+            setBackendRoles((prev) =>
+                prev.map((r) => (r.id === roleId || r._id === roleId ? { ...r, access: nextAccess } : r)),
+            );
+        } catch (error) {
+            console.error("Error updating role permissions:", error);
+            setError(error.response?.data?.message || error.message || t("Failed to update role permissions"));
+        }
+    }, [t]);
 
     // Handle delete role click
     const handleDeleteClick = useCallback((role) => {
@@ -361,7 +394,6 @@ export default function AdminDashboardPage() {
             {/* Tab Content */}
             {activeTab === "roles" && (
                 <RolesTab
-                    roles={roles}
                     backendRoles={backendRoles}
                     togglePermission={togglePermission}
                     toggleAllForRole={toggleAllForRole}

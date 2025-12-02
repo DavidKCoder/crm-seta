@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { TbTrashXFilled } from "react-icons/tb";
 
 export default function RolesTab({
-                                     roles,
                                      backendRoles,
                                      MODULES,
                                      togglePermission,
@@ -23,8 +22,8 @@ export default function RolesTab({
                 <div className="flex flex-col gap-4">
                     {backendRoles.map((r) => {
                         const roleName = r.name;
-                        const acc = roles[roleName]?.access || [];
-                        const hasAll = acc.includes("all");
+                        const acc = Array.isArray(r.access) ? r.access : [];
+                        const hasAll = MODULES.every((m) => acc.includes(m));
                         return (
                             <div key={r.id} className="border rounded p-3">
                                 <div className="flex items-center justify-between mb-2">
@@ -35,7 +34,7 @@ export default function RolesTab({
                                                 type="checkbox"
                                                 checked={hasAll}
                                                 disabled={roleName === "Admin"}
-                                                onChange={() => toggleAllForRole(roleName)}
+                                                onChange={() => toggleAllForRole(r)}
                                                 className="cursor-pointer"
                                             />
                                             <span>{(t || tt)("All")}</span>
@@ -58,7 +57,7 @@ export default function RolesTab({
                                                 <input
                                                     type="checkbox"
                                                     checked={acc.includes(m)}
-                                                    onChange={() => togglePermission(roleName, m)}
+                                                    onChange={() => togglePermission(r, m)}
                                                 />
                                                 <span className="px-2 py-0.5 rounded bg-white border text-gray-700">
                                                   {m}
