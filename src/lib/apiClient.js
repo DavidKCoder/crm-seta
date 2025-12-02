@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000"; // https://api.setacompany.am
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.setacompany.am"; // http://localhost:4000
 const debug = process.env.NODE_ENV === 'development';
 
 export async function authRequest(path, options = {}) {
