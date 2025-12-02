@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
             {/* Delete Confirmation Modal */}
             {roleToDelete && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md text-black">
                         <h2 className="text-xl font-bold mb-4">{t('Delete Role')}</h2>
 
                         {error && (
