@@ -6,10 +6,12 @@ import { useTranslation } from "react-i18next";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStatuses, createStatus, updateStatus, deleteStatus } from "@/features/statuses/statusesSlice";
+import Alert from "@/components/Alert";
 
 export default function DealStatusManager({ show, onClose, deals = [], inline = false }) {
     const [newStatus, setNewStatus] = useState("");
     const [newColor, setNewColor] = useState("#2563eb");
+    const [alert, setAlert] = useState({ show: false, type: "success", message: "" });
     const { t } = useTranslation();
     const { role } = useCurrentUserRole();
     const dispatch = useDispatch();
@@ -40,7 +42,9 @@ export default function DealStatusManager({ show, onClose, deals = [], inline = 
     const handleRemove = async (status) => {
         try {
             await dispatch(deleteStatus({ id: status.id })).unwrap();
-        } catch {
+        } catch (err) {
+            setAlert({ show: true, type: "error", message: `${status?.name} ${err}`  });
+            setTimeout(() => setAlert({ ...alert, show: false }), 2000);
         }
     };
 
@@ -155,6 +159,16 @@ export default function DealStatusManager({ show, onClose, deals = [], inline = 
                     </div>
                 </div>
             </div>
+
+            {alert.show && (
+                <div className="absolute top-0 right-0">
+                    <Alert
+                        type={alert.type}
+                        message={alert.message}
+                        onClose={() => setAlert({ ...alert, show: false })}
+                    />
+                </div>
+            )}
         </div>
     );
 
