@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 import { DealAvatar } from "@/app/deals/components/DealAvatar";
 
@@ -8,6 +11,7 @@ const currentUserBase = { name: "Guest", avatar: "https://i.pravatar.cc/32?img=1
 export default function CurrentUser() {
     const authUser = useSelector((state) => state.auth?.user);
     const { role } = useCurrentUserRole();
+    const router = useRouter();
 
     const hasName = authUser?.firstName || authUser?.lastName;
     const fullName = hasName
@@ -26,7 +30,9 @@ export default function CurrentUser() {
     const currentUser = { name, avatar, role: displayRole };
     return (
         <div
-            className="flex items-center h-10 rounded-md border border-transparent text-sm text-white transition-all shadow-sm hover:shadow-lg cursor-pointer">
+            className="flex items-center h-10 rounded-md border border-transparent text-sm text-white transition-all shadow-sm hover:shadow-lg cursor-pointer"
+            onClick={() => router.push("/admin/info")}
+        >
             <div className="flex items-center gap-2 p-2">
                 <DealAvatar deal={currentUser} />
                 <div className="grid leading-tight">

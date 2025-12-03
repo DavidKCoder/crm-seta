@@ -28,14 +28,16 @@ export default function AppShell({ children }) {
     return (
         <div className="flex min-h-screen">
             <Sidebar />
-            <main className="flex-1 p-4 light flex flex-col bg-gray-100">
-                <div className="flex justify-end items-center mb-4 rounded-lg bg-purple-50 p-1.5">
+            <main className="flex-1 p-4 light flex flex-col">
+                <div className="flex justify-end items-center mb-4 rounded-lg bg-gray-100 p-1.5">
                     <div className="flex items-stretch gap-2">
                         <ThemeSwitch />
                         <CurrentUser />
                     </div>
                 </div>
-                {children}
+                <div className="bg-gray-100 p-2 rounded-md">
+                    {children}
+                </div>
             </main>
         </div>
     );

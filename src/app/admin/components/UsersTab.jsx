@@ -464,7 +464,7 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                                     setEditError("");
                                     setEditSuccess("");
                                 }}
-                                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+                                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer"
                             >
                                 {t("Cancel")}
                             </button>
@@ -473,7 +473,7 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                                 disabled={editSubmitting}
                                 className={`px-4 py-2 rounded-md text-white ${
                                     editSubmitting ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer`}
                             >
                                 {editSubmitting ? t("Saving...") : t("Save Changes")}
                             </button>
