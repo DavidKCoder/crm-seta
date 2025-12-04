@@ -116,10 +116,14 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                 roleIds: newUser.roleIds,
             });
 
-            setTimeout(() => {
-                setUserSuccess(t("User created successfully!"));
-            }, 1000);
+            // Immediately add the new user to the list
+            if (response?.data) {
+                setUsers(prev => [response.data, ...prev]); // Add to beginning of array
+            }
 
+            setUserSuccess(t("User created successfully!"));
+
+            // Reset form
             setNewUser({
                 email: "",
                 password: "",
@@ -291,7 +295,7 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                             required
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                            {t("Minimum 6 characters")}
+                            {t("Minimum 8 characters")}
                         </p>
                     </div>
                 </div>

@@ -12,7 +12,6 @@ import { fetchStatuses } from "@/features/statuses/statusesSlice";
 import { useDispatch } from "react-redux";
 
 const MODULES = ["clients", "campaign", "deals", "expenses", "packages", "statistics"];
-const ADMIN_TOOLS = ["admin.dashboard", "manage.roles", "manage.statuses"];
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
@@ -28,6 +27,12 @@ export default function AdminDashboardPage() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const tabs = [
+        { id: "roles", label: t("Roles") },
+        { id: "users", label: t("Users") },
+        { id: "statuses", label: t("Statuses") },
+    ];
 
     // Load roles on component mount
     const loadRoles = useCallback(async () => {
@@ -368,30 +373,25 @@ export default function AdminDashboardPage() {
 
             {/* Tabs */}
             <div className="flex border-b border-gray-200 mb-6">
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("roles")}
-                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === "roles" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                    {t("Roles")}
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("statuses")}
-                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === "statuses" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                    {t("Statuses")}
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("users")}
-                    className={`px-4 py-2 font-medium cursor-pointer ${activeTab === "users" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                    {t("Users")}
-                </button>
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 font-medium cursor-pointer transition-colors ${
+                            activeTab === tab.id
+                                ? "border-b-2 border-blue-500 text-blue-600"
+                                : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             {/* Tab Content */}
+            {activeTab === "statuses" && <StatusesTab />}
+
             {activeTab === "roles" && (
                 <RolesTab
                     backendRoles={backendRoles}
@@ -402,8 +402,6 @@ export default function AdminDashboardPage() {
                     t={t}
                 />
             )}
-
-            {activeTab === "statuses" && <StatusesTab />}
 
             {activeTab === "users" && (
                 <UsersTab
