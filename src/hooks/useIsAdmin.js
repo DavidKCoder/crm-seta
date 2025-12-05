@@ -23,19 +23,19 @@ export function useIsAdmin() {
     const { canAccess } = useCanAccess();
 
     const isAdmin = useMemo(() => {
-        // Prefer backend roles array if present
+        if (!authUser) {
+            return false
+        }
         if (authUser && Array.isArray(authUser.roles) && authUser.roles.length > 0) {
             return authUser.roles.some((r) => {
                 const name = String(r?.name || "").trim();
                 if (!name) return false;
                 if (name.toLowerCase() !== "admin") return false;
 
-                // Also require that roles_config grants admin.dashboard (or all)
                 return canAccess(name, "admin.dashboard");
             });
         }
 
-        // Fallback to single role string (e.g., from auth_role)
         return String(role || "").trim().toLowerCase() === "admin";
     }, [authUser, role, canAccess]);
 
