@@ -44,9 +44,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
         if (!formState.name?.trim()) newErrors.name = t("Name is required");
 
         // Email validation
-        if (!formState.email?.trim()) {
-            newErrors.email = t("Email is required");
-        } else {
+        if (formState.email?.trim()) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(formState.email.trim())) {
                 newErrors.email = t("Please enter a valid email address");
@@ -222,7 +220,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     ];
 
     const renderField = (field) => {
-        const isRequired = field === "name" || field === "email" || field === "phone" || field === "status";
+        const isRequired = field === "name" || field === "phone" || field === "status";
         const fieldError = errors[field];
         const fieldKey = field === "Joining Date" ? "joiningDate" : field;
 
@@ -334,7 +332,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                 <button
                     className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleSave}
-                    disabled={!formState.name || !formState.email || !formState.phone || !formState.status}
+                    disabled={!formState.name || !formState.phone || !formState.status}
                 >
                     {editingId ? t("Update") : t("Save")}
                 </button>
