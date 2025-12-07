@@ -13,7 +13,7 @@ export default function RolesTab({
     const { t: tt } = useTranslation();
 
     return (
-        <div className="grid md:grid-cols-2 gap-6 text-black">
+        <div className="grid md:grid-cols gap-6 text-black">
             {/* Roles x Modules */}
             <div className="bg-white border rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -52,18 +52,21 @@ export default function RolesTab({
                                 </div>
                                 {!hasAll && (
                                     <div className="flex flex-wrap gap-2">
-                                        {MODULES.map((m) => (
-                                            <label key={m} className="flex items-center gap-2 text-sm cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={acc.includes(m)}
-                                                    onChange={() => togglePermission(r, m)}
-                                                />
-                                                <span className="px-2 py-0.5 rounded bg-white border text-gray-700">
-                                                  {m}
-                                                </span>
-                                            </label>
-                                        ))}
+                                        {MODULES.map((m) => {
+                                            const labelKey = m.charAt(0).toUpperCase() + m.slice(1);
+                                            return (
+                                                <label key={m} className="flex items-center gap-2 text-sm cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={acc.includes(m)}
+                                                        onChange={() => togglePermission(r, m)}
+                                                    />
+                                                    <span className="px-2 py-0.5 rounded bg-white border text-gray-700">
+                                                      {(t || tt)(labelKey)}
+                                                    </span>
+                                                </label>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

@@ -192,7 +192,7 @@ export default function StatisticsPageContent() {
         },
         {
             value: stats.pipelineTotalValue.toLocaleString("en-US"),
-            label: t("Pipeline Value"),
+            label: t("Deals Total Price"),
             icon: <FaChartLine size={35} />,
         },
     ];

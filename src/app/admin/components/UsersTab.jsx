@@ -373,7 +373,7 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                 </svg>
                                 {t("Creating...")}
               </span>
-                        ) : t("Create User")}
+                        ) : t("Create user")}
                     </button>
                 </div>
             </form>
@@ -576,7 +576,7 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                                                     <button
                                                         type="button"
                                                         onClick={() => handleEditSelect(user)}
-                                                        className="text-blue-600 hover:text-blue-900"
+                                                        className="text-blue-600 hover:text-blue-900 cursor-pointer"
                                                     >
                                                         {t("Edit")}
                                                     </button>
@@ -584,7 +584,7 @@ export default function UsersTab({ backendRoles, apiPost, fetchUsers, apiPut, ap
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDeleteUser(user)}
-                                                        className="text-red-600 hover:text-red-900"
+                                                        className="text-red-600 hover:text-red-900 cursor-pointer"
                                                     >
                                                         {t("Delete")}
                                                     </button>
