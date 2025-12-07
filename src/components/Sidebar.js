@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import logo from "../../public/seta_logo.PNG";
+import logo from "../../public/seta_logo.png";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";

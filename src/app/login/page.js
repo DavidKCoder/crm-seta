@@ -111,7 +111,7 @@ export default function LoginPage() {
         <div className="flex w-full h-full items-center justify-center">
             <div className="w-full max-w-sm bg-white border border-gray-200 rounded-2xl p-6 shadow">
                 <div className="flex flex-col items-center mb-4">
-                    <Image src="/seta_logo.PNG" alt="Logo" width={80} height={80} className="mb-2" />
+                    <Image src="/seta_logo.png" alt="Logo" width={80} height={80} className="mb-2" />
                     <h1 className="text-2xl font-semibold text-gray-900">{t("Log in")}</h1>
                 </div>
                 <form onSubmit={onSubmit} className="flex flex-col gap-3">

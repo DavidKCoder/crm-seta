@@ -1,7 +1,12 @@
 const nextConfig = {
     images: {
-        domains: ['i.pravatar.cc'],
-    },
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "example.com",
+            }
+        ]
+    }
 };
 
 export default nextConfig;
