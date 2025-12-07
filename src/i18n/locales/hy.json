@@ -162,5 +162,12 @@
     "totalDeals": "Ընդհանուր գործարքներ",
     "growthRate": "Աճի տեմպ"
   },
-  "My Info": "Իմ տվյալները"
+  "My Info": "Իմ տվյալները",
+  "Change password": "Փոխել գաղտնաբառը",
+  "Current password": "Ներկա գաղտնաբառ",
+  "New password": "Նոր գաղտնաբառ",
+  "Confirm new password": "Հաստատեք նոր գաղտնաբառը",
+  "New password and confirmation do not match": "Նոր գաղտնաբառը եւ հաստատումը չեն համընկնում",
+  "Failed to change password": "Չհաջողվեց փոխել գաղտնաբառը",
+  "Your password has been changed successfully.": "Ձեր գաղտնաբառը հաջողությամբ փոխվեց։"
 }

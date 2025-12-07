@@ -13,6 +13,7 @@ const initialState = {
 
 export const login = createAsyncThunk("auth/login", async ({ email, password, role, tenantId }, { rejectWithValue }) => {
     try {
+        console.log('TENANT_ID', TENANT_ID);
         const data = await authRequest("/login", {
             body: {
                 tenantId: tenantId || TENANT_ID,

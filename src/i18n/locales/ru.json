@@ -176,5 +176,12 @@
     "totalDeals": "Всего сделок",
     "growthRate": "Темп роста"
   },
-  "My Info": "Мои данные"
+  "My Info": "Мои данные",
+  "Change password": "Изменить пароль",
+  "Current password": "Текущий пароль",
+  "New password": "Новый пароль",
+  "Confirm new password": "Подтвердите новый пароль",
+  "New password and confirmation do not match": "Новый пароль и подтверждение не совпадают",
+  "Failed to change password": "Не удалось изменить пароль",
+  "Your password has been changed successfully.": "Ваш пароль был успешно изменён."
 }
