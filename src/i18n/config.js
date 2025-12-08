@@ -4,6 +4,19 @@ import enTranslations from './locales/en.json';
 import ruTranslations from './locales/ru.json';
 import hyTranslations from './locales/hy.json';
 
+const DEFAULT_LANG = 'hy';
+
+let initialLng = DEFAULT_LANG;
+if (typeof window !== 'undefined') {
+    try {
+        const stored = window.localStorage.getItem('app_lang') || window.localStorage.getItem('i18nextLng');
+        if (stored && typeof stored === 'string') {
+            initialLng = stored;
+        }
+    } catch {
+    }
+}
+
 i18n
     .use(initReactI18next)
     .init({
@@ -12,13 +25,13 @@ i18n
             ru: { translation: ruTranslations },
             hy: { translation: hyTranslations },
         },
-        lng: 'hy',
-        fallbackLng: 'hy',
+        lng: initialLng,
+        fallbackLng: DEFAULT_LANG,
         interpolation: {
-            escapeValue: false, // React уже экранирует значения
+            escapeValue: false,
         },
         react: {
-            useSuspense: false, // для совместимости с Next.js
+            useSuspense: false,
         },
     });
 

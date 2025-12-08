@@ -19,6 +19,12 @@ export default function LanguageSwitcher({ collapsed }) {
 
     const handleSelect = (code) => {
         i18n.changeLanguage(code);
+        try {
+            if (typeof window !== "undefined") {
+                window.localStorage.setItem("app_lang", code);
+            }
+        } catch {
+        }
         setOpen(false);
     };
 
