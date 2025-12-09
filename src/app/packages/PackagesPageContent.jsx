@@ -132,7 +132,7 @@ export default function PackagesPageContent() {
             ) : packages.length === 0 ? (
                 <div className="text-center py-10 text-gray-500">{t("No data available")}</div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {packages.map((pkg) => (
                         <div
                             key={pkg.id}

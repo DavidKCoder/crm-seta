@@ -305,8 +305,18 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 text-gray-900">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <div className="fixed inset-0 z-50 flex bg-black/50 text-gray-900">
+            <div
+                className="
+                relative
+                flex h-full w-full flex-col
+                bg-white shadow-lg
+                rounded-none
+                sm:rounded-lg
+                sm:max-w-md sm:mx-auto sm:my-8 sm:max-h-[85vh]
+                p-4 sm:p-6
+            "
+            >
                 <button
                     className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 cursor-pointer"
                     onClick={onClose}
@@ -314,19 +324,21 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                     <IoMdClose size={25} />
                 </button>
 
-                <h2 className="text-xl font-semibold mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold mb-4">
                     {editingId ? t("Edit") : t("Add")}
                 </h2>
 
-                {/* General form error */}
-                {(errors._form || errors._error) && (
-                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                        {errors._form || errors._error}
-                    </div>
-                )}
+                <div className="flex-1 overflow-y-auto pr-1">
+                    {/* General form error */}
+                    {(errors._form || errors._error) && (
+                        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                            {errors._form || errors._error}
+                        </div>
+                    )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {fields.map(renderField)}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {fields.map(renderField)}
+                    </div>
                 </div>
 
                 <button

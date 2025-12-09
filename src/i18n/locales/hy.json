@@ -1,6 +1,6 @@
 {
   "Clients": "Հաճախորդներ",
-  "Campaign": "Գործընկերներ",
+  "Campaign": "Ընկերություններ",
   "Deals": "Գործարքներ",
   "Packages": "Փաթեթներ",
   "Statistics": "Վիճակագրություն",
@@ -81,6 +81,7 @@
   "Log in": "Մուտք",
   "Role": "Դեր",
   "Admin Dashboard": "Ադմինիստրատորի վահանակ",
+  "Create": "Ստեղծել",
   "Create user": "Ստեղծել օգտվող",
   "Create role": "Ստեղծել դեր",
   "Statuses": "Կարգավիճակներ",
@@ -113,8 +114,8 @@
   "Entity Type": "Սուբյեկտի տեսակ",
   "Entity type is required": "Սուբյեկտի տեսակը պարտադիր է",
   "Entity is required": "Սուբյեկտը պարտադիր է",
-  "Assigned User": "Պատասխանատու օգտվող",
-  "Assigned User is required": "Պատասխանատու օգտվողը պարտադիր է",
+  "Assigned User": "Նշանակված օգտատեր",
+  "Assigned User is required": "Օգտատեր պարտադիր է",
   "Currency": "Արժույթ",
   "Currency is required": "Արժույթը պարտադիր է",
   "Value": "Գումար",
@@ -127,7 +128,7 @@
   "Attached Files": "Կցված ֆայլեր",
   "Uploading...": "Վերբեռնվում է...",
   "Upload PDF (Max 5MB)": "Վերբեռնել PDF (մինչեւ 5 ՄԲ)",
-  "Select Campaign": "Ընտրեք գովազդային արշավը",
+  "Select Campaign": "Ընտրեք ընկերությունը",
   "Select Client": "Ընտրեք հաճախորդին",
   "Facebook URL placeholder": "https://facebook.com/username",
   "Instagram URL placeholder": "https://instagram.com/username",
@@ -175,5 +176,7 @@
   "Confirm new password": "Հաստատեք նոր գաղտնաբառը",
   "New password and confirmation do not match": "Նոր գաղտնաբառը եւ հաստատումը չեն համընկնում",
   "Failed to change password": "Չհաջողվեց փոխել գաղտնաբառը",
-  "Your password has been changed successfully.": "Ձեր գաղտնաբառը հաջողությամբ փոխվեց։"
+  "Your password has been changed successfully.": "Ձեր գաղտնաբառը հաջողությամբ փոխվեց։",
+  "Select users": "Ընտրեք օգտատերեր",
+  "Mark as finished": "Նշել որպես ավարտված"
 }
