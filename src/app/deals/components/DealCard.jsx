@@ -8,12 +8,25 @@ import { useTranslation } from "react-i18next";
 import { DealDetailsModal } from "@/app/deals/components/DealDetailsModal";
 import { TbBuildingStore, TbUserBolt } from "react-icons/tb";
 import { PiHandshake } from "react-icons/pi";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useSelector } from "react-redux";
 
 export function DealCard({ deal, st, handleEdit, handleDelete }) {
     const { t } = useTranslation();
     const [menuOpen, setMenuOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const menuRef = useRef(null);
+
+    const authUser = useSelector((state) => state.auth.user);
+    const { isAdmin } = useIsAdmin();
+
+    const isCreator =
+        !!authUser &&
+        !!deal?.createdBy &&
+        String(authUser.id) === String(deal.createdBy.id);
+
+    const canEdit = isAdmin || isCreator;
+
     const assignedUsers = Array.isArray(deal?.assignedUsers) && deal.assignedUsers.length > 0
         ? deal.assignedUsers
         : (deal?.assignedTo ? [deal.assignedTo].filter(Boolean) : []);
@@ -70,7 +83,8 @@ export function DealCard({ deal, st, handleEdit, handleDelete }) {
                                     <div
                                         className="absolute right-0 mt-2 w-auto bg-white border rounded shadow-lg z-20 cursor-pointer">
                                         <button
-                                            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left cursor-pointer"
+                                            className={`flex items-center gap-2 px-3 py-2 text-sm w-full text-left cursor-pointer ${canEdit ? "hover:bg-gray-100" : "text-gray-400"}`}
+                                            disabled={!canEdit}
                                             onClick={() => {
                                                 handleEdit(deal);
                                                 setMenuOpen(false);

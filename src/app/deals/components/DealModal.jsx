@@ -354,6 +354,11 @@ export default function DealModal({
             phone: formData.phone?.trim() || "",
             joiningDate:
                 formData.joiningDate || new Date().toISOString().split("T")[0],
+
+            // ➜ ADD THESE TWO LINES
+            startDate: formData.startDate || new Date().toISOString().split("T")[0],
+            endDate: formData.endDate || new Date().toISOString().split("T")[0],
+
             notes: formData.notes || "",
             facebook: formData.facebook || undefined,
             instagram: formData.instagram || undefined,
@@ -396,6 +401,29 @@ export default function DealModal({
                 </h2>
 
                 <div className="flex-1 overflow-y-auto pr-1">
+
+                    {/* Created By (read-only) */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">
+                            {t("Created By")}
+                        </label>
+                        <input
+                            type="text"
+                            readOnly
+                            disabled
+                            className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
+                            value={
+                                editingDeal?.createdBy
+                                    ? (
+                                        [editingDeal.createdBy.firstName, editingDeal.createdBy.lastName]
+                                            .filter(Boolean)
+                                            .join(" ")
+                                            .trim()
+                                    )
+                                    : ""
+                            }
+                        />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {/* Assigned User */}
                         <div ref={assignedDropdownRef} className="relative">
@@ -772,6 +800,33 @@ export default function DealModal({
                                 onChange={(e) =>
                                     handleInputChange("joiningDate", e.target.value)
                                 }
+                                className="border p-2 w-full rounded"
+                            />
+                        </div>
+
+                        {/* Start Date */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                {t("Start Date")}
+                            </label>
+                            <input
+                                type="date"
+                                value={formData.startDate || ""}
+                                onChange={(e) => handleInputChange("startDate", e.target.value)}
+                                className="border p-2 w-full rounded"
+                            />
+                        </div>
+
+                        {/* End Date */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                {t("End Date")}
+                            </label>
+                            <input
+                                type="date"
+                                min={formData.startDate}
+                                value={formData.endDate || ""}
+                                onChange={(e) => handleInputChange("endDate", e.target.value)}
                                 className="border p-2 w-full rounded"
                             />
                         </div>

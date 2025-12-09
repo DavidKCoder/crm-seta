@@ -190,5 +190,10 @@
   "Confirm new password": "Подтвердите новый пароль",
   "New password and confirmation do not match": "Новый пароль и подтверждение не совпадают",
   "Failed to change password": "Не удалось изменить пароль",
-  "Your password has been changed successfully.": "Ваш пароль был успешно изменён."
+  "Your password has been changed successfully.": "Ваш пароль был успешно изменён.",
+  "Created By": "Кем создано",
+  "Start Date": "Дата начала",
+  "End Date": "Дата окончания",
+  "Contact": "Контакты",
+  "Assigned Users": "Назначенные пользователи"
 }

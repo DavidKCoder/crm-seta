@@ -178,5 +178,10 @@
   "Failed to change password": "Չհաջողվեց փոխել գաղտնաբառը",
   "Your password has been changed successfully.": "Ձեր գաղտնաբառը հաջողությամբ փոխվեց։",
   "Select users": "Ընտրեք օգտատերեր",
-  "Mark as finished": "Նշել որպես ավարտված"
+  "Mark as finished": "Նշել որպես ավարտված",
+  "Created By": "Ստեղծողը",
+  "Start Date": "Մեկնարկի ամսաթիվ",
+  "End Date": "Ավարտի ամսաթիվ",
+  "Contact": "Կոնտակտ",
+  "Assigned Users": "Նշանակված օգտատերեր"
 }

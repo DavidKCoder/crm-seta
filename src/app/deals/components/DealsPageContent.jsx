@@ -13,10 +13,12 @@ import { fetchClients } from "@/features/clients/clientsSlice";
 import { fetchCampaigns } from "@/features/campaigns/campaignsSlice";
 import { fetchStatuses } from "@/features/statuses/statusesSlice";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useIsManager } from "@/hooks/useIsManager";
 
 export default function DealsPageContent() {
     const { t } = useTranslation();
     const { isAdmin } = useIsAdmin();
+    const { isManager } = useIsManager();
     const dispatch = useDispatch();
     const deals = useSelector((state) => state.deals.items);
     const dealsStatus = useSelector((state) => state.deals.status);
@@ -43,6 +45,8 @@ export default function DealsPageContent() {
         website: "",
         notes: "",
         joiningDate: "",
+        startDate: "",
+        endDate: "",
         isFinished: false,
         pdfFile: null,
         assignedToUserId: "",
@@ -121,6 +125,8 @@ export default function DealsPageContent() {
             website: "",
             notes: "",
             joiningDate: "",
+            startDate: "",
+            endDate: "",
             isFinished: false,
             pdfFile: null,
             assignedToUserId: "",
@@ -225,6 +231,8 @@ export default function DealsPageContent() {
                 assignedToUserId: resolvedAssignedIds[0] || "",
                 assignedToUserIds: resolvedAssignedIds,
                 joiningDate: formatDate(result?.joiningDate) || "",
+                startDate: formatDate(result?.startDate) || "",
+                endDate: formatDate(result?.endDate) || "",
 
                 // Reset file input
                 pdfFile: null,
@@ -279,6 +287,21 @@ export default function DealsPageContent() {
             ? multipleAssignedIds[0]
             : (formData.assignedToUserId || null);
 
+        const formatToUTC4Date = (dateInput) => {
+            if (!dateInput) return "";
+
+            const date = new Date(dateInput);
+
+            date.setDate(date.getDate() + 1);
+
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(date.getUTCDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        };
+
+
         const payload = {
             entityType,
             entityId,
@@ -288,7 +311,9 @@ export default function DealsPageContent() {
             name: formData.name?.trim() || "",
             email: formData.email?.trim() || "",
             phone: formData.phone?.trim() || "",
-            joiningDate: formData.joiningDate || new Date().toISOString().split("T")[0],
+            joiningDate: formatToUTC4Date(formData.joiningDate) || formatToUTC4Date(new Date()),
+            startDate: formatToUTC4Date(formData.startDate) || formatToUTC4Date(new Date()),
+            endDate: formatToUTC4Date(formData.endDate) || formatToUTC4Date(new Date()),
             notes: formData.notes?.trim() || "",
             facebook: formData.facebook?.trim() || undefined,
             instagram: formData.instagram?.trim() || undefined,
@@ -415,14 +440,14 @@ export default function DealsPageContent() {
                     </div>
                 </div>
 
-                <div className="flex gap-4 items-center flex-wrap">
+                {isAdmin || isManager && <div className="flex gap-4 items-center flex-wrap">
                     <button
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded cursor-pointer text-sm"
                         onClick={handleOpenAdd}
                     >
                         {t("Add Deal")}
                     </button>
-                </div>
+                </div>}
             </div>
 
             <div className="flex gap-4 overflow-x-auto">
