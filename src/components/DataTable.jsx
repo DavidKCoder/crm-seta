@@ -176,7 +176,29 @@ export default function DataTable({
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-10 text-black">
-                    <h1 className="text-2xl text-gray-900 font-bold">{t(title)}</h1>
+                    <div className="flex flex-wrap gap-3 items-center justify-start text-black">
+                        <button
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer"
+                            onClick={() => {
+                                setShowForm(!showForm);
+                                setEditingId(null);
+                                // For expenses, initialise form state with expected structure
+                                if (pathname === "/expenses") {
+                                    setFormState({
+                                        dealId: "",
+                                        items: [{ userId: "", roleId: "", amount: "" }],
+                                        notes: "",
+                                        assignedToUserIds: [],
+                                    });
+                                } else {
+                                    setFormState({});
+                                }
+                            }}
+                        >
+                            {t("Add")}
+                        </button>
+                    </div>
+                    <h1 className="text-2xl text-gray-900 font-bold">{t(title +"s")}</h1>
                     <input
                         type="text"
                         placeholder={`${t("Search")}...`}
@@ -213,28 +235,6 @@ export default function DataTable({
                         </div>
                     )}
                 </div>
-                <div className="flex flex-wrap gap-3 items-center justify-start text-black">
-                    <button
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer"
-                        onClick={() => {
-                            setShowForm(!showForm);
-                            setEditingId(null);
-                            // For expenses, initialise form state with expected structure
-                            if (pathname === "/expenses") {
-                                setFormState({
-                                    dealId: "",
-                                    items: [{ userId: "", roleId: "", amount: "" }],
-                                    notes: "",
-                                    assignedToUserIds: [],
-                                });
-                            } else {
-                                setFormState({});
-                            }
-                        }}
-                    >
-                        {t("Add")}
-                    </button>
-                </div>
             </div>
 
             {/* Table */}
@@ -262,7 +262,6 @@ export default function DataTable({
                     {paginatedData.length ? paginatedData.map(item => (
                         <tr key={item.id} className="border-t hover:bg-gray-50">
                             {columns.map(col => {
-                                col.key === "assignedUsersDisplay" && console.log("col", item?.assignedUsers);
                                 return (
                                     <td key={col.key} className="p-3 text-gray-900">
                                         {col.key === "assignedUsersDisplay" ? (

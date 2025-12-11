@@ -58,7 +58,7 @@ export default function ClientsPageContent() {
         <DataTable
             initialData={items}
             columns={columns}
-            title="Clients"
+            title="Client"
             onDateRangeChange={(range) => setDateRange(range)}
             initialStartDate={dateRange.startDate}
             initialEndDate={dateRange.endDate}

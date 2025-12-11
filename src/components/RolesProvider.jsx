@@ -13,7 +13,6 @@ export function RolesProvider({ children }) {
             const raw = localStorage.getItem("roles_config");
             if (raw) {
                 const parsed = JSON.parse(raw);
-                console.log("parsed", parsed);
                 if (parsed && typeof parsed === "object") {
                     setRoles((prev) => ({ ...prev, ...parsed }));
                 }

@@ -163,10 +163,6 @@ export async function apiUpload(path, formData) {
     const url = buildUrl(path);
     let res;
 
-    console.log('=== File Upload Debug ===');
-    console.log('Upload URL:', url);
-    console.log('FormData entries:');
-
     for (let [key, value] of formData.entries()) {
         if (value instanceof File) {
             console.log(`- ${key}:`, {
@@ -188,14 +184,8 @@ export async function apiUpload(path, formData) {
             method: 'POST',
             credentials: 'include',
             body: formData,
-            // Не устанавливаем Content-Type - браузер сам установит с boundary
         });
 
-        const endTime = Date.now();
-        console.log(`Request completed in ${endTime - startTime}ms`);
-        console.log('Response status:', res.status, res.statusText);
-
-        // Обработка 401 и refresh token
         if (res.status === 401) {
             try {
                 console.log('Attempting token refresh...');

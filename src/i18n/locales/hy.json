@@ -1,6 +1,7 @@
 {
   "Clients": "Հաճախորդներ",
-  "Campaign": "Ընկերություններ",
+  "Campaign": "Ընկերություն",
+  "Campaigns": "Ընկերություններ",
   "Deals": "Գործարքներ",
   "Packages": "Փաթեթներ",
   "Statistics": "Վիճակագրություն",
@@ -136,6 +137,8 @@
   "User Management": "Օգտվողների կառավարում",
   "First Name": "Անուն",
   "Last Name": "Ազգանուն",
+  "FirstName": "Անուն",
+  "LastName": "Ազգանուն",
   "Roles": "Դերեր",
   "Active Account": "Ակտիվ հաշիվ",
   "Minimum 8 characters": "Նվազագույնը 8 նիշ",
@@ -145,6 +148,7 @@
   "Loading users...": "Օգտվողների բեռնում...",
   "No users found for the selected filters.": "Ընտրված ֆիլտրերով օգտվողներ չեն գտնվել։",
   "All fields are required": "Բոլոր դաշտերը պարտադիր են",
+  "First name is required": "Անունը պարտադիր է",
   "Please enter a valid email address": "Խնդրում ենք մուտքագրել վավեր էլ. հասցե",
   "Password must be at least 6 characters": "Գաղտնաբառը պետք է լինի առնվազն 6 նիշ",
   "Please select at least one role": "Խնդրում ենք ընտրել առնվազն մեկ դեր",
@@ -183,5 +187,15 @@
   "Start Date": "Մեկնարկի ամսաթիվ",
   "End Date": "Ավարտի ամսաթիվ",
   "Contact": "Կոնտակտ",
-  "Assigned Users": "Նշանակված օգտատերեր"
+  "Assigned Users": "Նշանակված օգտատերեր",
+  "add": {
+    "client": "Ավելացնել հաճախորդ",
+    "campaign": "Ավելացնել ընկերություն",
+    "deal": "Ավելացնել գործարք"
+  },
+  "edit": {
+    "client": "Խմբագրել հաճախորդին",
+    "campaign": "Խմբագրել ընկերություն",
+    "deal": "Խմբագրել գործարքը"
+  }
 }

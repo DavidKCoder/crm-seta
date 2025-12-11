@@ -75,13 +75,13 @@ export default function DealModal({
                 // Load attachments if editing
                 if (editingDeal?.id) {
                     const attachmentsResponse = await apiGet(
-                        `/api/deals/${editingDeal.id}/attachments`
+                        `/api/deals/${editingDeal.id}/attachments`,
                     );
                     if (attachmentsResponse?.data) {
                         setAttachments(
                             Array.isArray(attachmentsResponse.data)
                                 ? attachmentsResponse.data
-                                : []
+                                : [],
                         );
                     }
                 }
@@ -147,7 +147,6 @@ export default function DealModal({
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
-        console.log("Selected file:", file);
 
         if (!file || !editingDeal?.id) {
             console.log("No file selected or no deal ID");
@@ -177,7 +176,7 @@ export default function DealModal({
 
             const response = await apiUpload(
                 `/api/deals/${editingDeal.id}/attachments`,
-                formData
+                formData,
             );
 
             console.log("Upload response:", response);
@@ -209,10 +208,10 @@ export default function DealModal({
         try {
             setRemovingAttachmentId(attachmentId);
             await apiDelete(
-                `/api/deals/${editingDeal.id}/attachments/${attachmentId}`
+                `/api/deals/${editingDeal.id}/attachments/${attachmentId}`,
             );
             setAttachments((prev) =>
-                prev.filter((att) => att.id !== attachmentId)
+                prev.filter((att) => att.id !== attachmentId),
             );
         } catch (error) {
             console.error("Error removing attachment:", error);
@@ -239,7 +238,7 @@ export default function DealModal({
                 if (attachment.downloadUrl || attachment.url || attachment.fileUrl) {
                     window.open(
                         attachment.downloadUrl || attachment.url || attachment.fileUrl,
-                        "_blank"
+                        "_blank",
                     );
                     return;
                 }
@@ -401,29 +400,23 @@ export default function DealModal({
                 </h2>
 
                 <div className="flex-1 overflow-y-auto pr-1">
-
-                    {/* Created By (read-only) */}
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            {t("Created By")}
-                        </label>
-                        <input
-                            type="text"
-                            readOnly
-                            disabled
-                            className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
-                            value={
-                                editingDeal?.createdBy
-                                    ? (
-                                        [editingDeal.createdBy.firstName, editingDeal.createdBy.lastName]
-                                            .filter(Boolean)
-                                            .join(" ")
-                                            .trim()
-                                    )
-                                    : ""
-                            }
-                        />
-                    </div>
+                    <label className="block text-sm font-medium mb-1">
+                        {t("Created By")}
+                    </label>
+                    <input
+                        type="text"
+                        readOnly
+                        disabled
+                        className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
+                        value={(() => {
+                            const user = editingDeal?.createdBy || editingDeal?.updatedBy;
+                            if (!user) return "";
+                            return [user.firstName, user.lastName]
+                                .filter(Boolean)
+                                .join(" ")
+                                .trim();
+                        })()}
+                    />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {/* Assigned User */}
                         <div ref={assignedDropdownRef} className="relative">
@@ -446,7 +439,7 @@ export default function DealModal({
                       ? formData.assignedToUserIds
                           .map((id) => {
                               const matchedUser = users.find(
-                                  (user) => String(user?.id) === String(id)
+                                  (user) => String(user?.id) === String(id),
                               );
                               if (!matchedUser) return null;
                               const firstName =
@@ -484,7 +477,8 @@ export default function DealModal({
                                 </svg>
                             </button>
                             {isAssignedDropdownOpen && (
-                                <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-lg max-h-56 overflow-auto">
+                                <div
+                                    className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-lg max-h-56 overflow-auto">
                                     {users.length === 0 && (
                                         <div className="px-3 py-2 text-sm text-gray-500">
                                             {t("No users available")}
@@ -513,7 +507,7 @@ export default function DealModal({
                                                         .join(" ")
                                                         .trim() || "Unnamed User";
                                                 const isChecked = Array.isArray(
-                                                    formData.assignedToUserIds
+                                                    formData.assignedToUserIds,
                                                 )
                                                     ? formData.assignedToUserIds
                                                         .map(String)
@@ -550,7 +544,7 @@ export default function DealModal({
                                                 console.error(
                                                     "Error rendering user option:",
                                                     error,
-                                                    user
+                                                    user,
                                                 );
                                                 return null;
                                             }
@@ -725,7 +719,7 @@ export default function DealModal({
                                         const formatted = formatCurrency(e.target.value);
                                         handleInputChange(
                                             "value",
-                                            formatted ? parseInt(formatted) : ""
+                                            formatted ? parseInt(formatted) : "",
                                         );
                                     }}
                                     className={`border p-2 w-full rounded pl-8 ${

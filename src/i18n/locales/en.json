@@ -148,6 +148,11 @@
   "Instagram": "Instagram",
   "Website": "Website",
   "Mark as finished": "Mark as finished",
+  "Created By": "Created By",
+  "Start Date": "Start Date",
+  "End Date": "End Date",
+  "Contact": "Contact",
+  "Assigned Users": "Assigned Users",
   "Attachments": "Attachments",
   "Only PDF files are accepted": "Only PDF files are accepted",
   "Attached Files": "Attached Files",
@@ -161,6 +166,8 @@
   "User Management": "User Management",
   "First Name": "First Name",
   "Last Name": "Last Name",
+  "FirstName": "First Name",
+  "LastName": "Last Name",
   "Roles": "Roles",
   "Active Account": "Active Account",
   "Minimum 8 characters": "Minimum 68 characters",
@@ -170,6 +177,7 @@
   "Loading users...": "Loading users...",
   "No users found for the selected filters.": "No users found for the selected filters.",
   "All fields are required": "All fields are required",
+  "First name is required": "First name is required",
   "Please enter a valid email address": "Please enter a valid email address",
   "Password must be at least 6 characters": "Password must be at least 6 characters",
   "Please select at least one role": "Please select at least one role",
@@ -193,5 +201,15 @@
     "totalDeals": "Total deals",
     "growthRate": "Growth rate"
   },
-  "My Info": "My Info"
+  "My Info": "My Info",
+  "add": {
+    "client": "Add Client",
+    "campaign": "Add Campaign",
+    "deal": "Add Deal"
+  },
+  "edit": {
+    "client": "Edit Client",
+    "campaign": "Edit Campaign",
+    "deal": "Edit Deal"
+  }
 }

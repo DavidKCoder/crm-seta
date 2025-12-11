@@ -16,12 +16,32 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     const [mounted, setMounted] = useState(false);
     const dispatch = useDispatch();
 
-    const entity = title === "Clients" ? "client" : title === "Campaign" ? "campaign" : null;
+    const entity = title === "Client" ? "client" : title === "Campaign" ? "campaign" : null;
     const clientStatusesState = useSelector((state) => state.statuses);
     const campaignStatusesState = useSelector((state) => state.statuses);
     const activeStatusesState = entity === "client" ? clientStatusesState : entity === "campaign" ? campaignStatusesState : null;
 
     useEffect(() => setMounted(true), []);
+
+    useEffect(() => {
+        if (!show) return;
+        if (!formState) return;
+
+        const hasFirst = !!formState.firstName;
+        const hasLast = !!formState.lastName;
+        const rawName = typeof formState.name === "string" ? formState.name.trim() : "";
+
+        if (!hasFirst && !hasLast && rawName) {
+            const parts = rawName.split(" ");
+            const firstName = parts.shift() || "";
+            const lastName = parts.join(" ");
+            setFormState(prev => ({
+                ...prev,
+                firstName,
+                lastName,
+            }));
+        }
+    }, [show, formState?.name]);
 
     useEffect(() => {
         if (!entity || !activeStatusesState) return;
@@ -40,8 +60,8 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     const validate = () => {
         const newErrors = {};
 
-        // Name validation
-        if (!formState.name?.trim()) newErrors.name = t("Name is required");
+        // First name validation (last name is optional)
+        if (!formState.firstName?.trim()) newErrors.firstName = t("First name is required");
 
         // Email validation
         if (formState.email?.trim()) {
@@ -74,6 +94,12 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
 
         const statusName = getStatusName(formState.status);
 
+        // Merge first and last names into a single name field for saving
+        const mergedName = [formState.firstName, formState.lastName]
+            .filter(part => part && part.trim())
+            .join(" ")
+            .trim();
+
         try {
             if (entity === "client") {
                 const statusesItems = clientStatusesState?.items || [];
@@ -85,7 +111,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
 
                 const payload = {
                     statusId: selected.id,
-                    name: formState.name,
+                    name: mergedName,
                     email: formState.email || undefined,
                     phone: formState.phone || undefined,
                     joiningDate: formState.joiningDate || undefined,
@@ -126,7 +152,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
 
                 const payload = {
                     statusId: selected.id,
-                    name: formState.name,
+                    name: mergedName,
                     email: formState.email || undefined,
                     phone: formState.phone || undefined,
                     joiningDate: formState.joiningDate || undefined,
@@ -202,11 +228,14 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                 return;
             }
 
-            // Fallback: use provided onSave for non-client entities
-            onSave(formState);
+            // Fallback: use provided onSave for non-client entities,
+            // but ensure name is populated from first/last
+            onSave({
+                ...formState,
+                name: mergedName,
+            });
         } catch (error) {
             console.error("Error saving data:", error);
-            // Handle any unexpected errors
             setErrors(prev => ({
                 ...prev,
                 _error: error.message || "An unexpected error occurred",
@@ -215,14 +244,14 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
     };
 
     const fields = [
-        "name", "email", "phone", "Joining Date", "status",
+        "firstName", "lastName", "email", "phone", "Joining Date", "status",
         "facebook", "instagram", "website", "notes",
     ];
 
     const renderField = (field) => {
-        const isRequired = field === "name" || field === "phone" || field === "status";
-        const fieldError = errors[field];
+        const isRequired = field === "firstName" || field === "phone" || field === "status";
         const fieldKey = field === "Joining Date" ? "joiningDate" : field;
+        const fieldError = errors[fieldKey];
 
         return (
             <div key={field} className={`flex flex-col ${field === "notes" ? "sm:col-span-2" : ""}`}>
@@ -325,7 +354,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                 </button>
 
                 <h2 className="text-lg sm:text-xl font-semibold mb-4">
-                    {editingId ? t("Edit") : t("Add")}
+                    {editingId ? t(`edit.${title.toLowerCase()}`): t(`add.${title.toLowerCase()}`)}
                 </h2>
 
                 <div className="flex-1 overflow-y-auto pr-1">
@@ -344,7 +373,7 @@ export default function FormModal({ show, title, onClose, onSave, formState, set
                 <button
                     className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleSave}
-                    disabled={!formState.name || !formState.phone || !formState.status}
+                    disabled={!formState.firstName || !formState.phone || !formState.status}
                 >
                     {editingId ? t("Update") : t("Save")}
                 </button>

@@ -1,6 +1,7 @@
 {
   "Clients": "Клиенты",
-  "Campaign": "Кампании",
+  "Campaign": "Кампаня",
+  "Campaigns": "Кампании",
   "Deals": "Сделки",
   "Packages": "Пакеты",
   "Statistics": "Статистика",
@@ -150,6 +151,8 @@
   "User Management": "Управление пользователями",
   "First Name": "Имя",
   "Last Name": "Фамилия",
+  "FirstName": "Имя",
+  "LastName": "Фамилия",
   "Roles": "Роли",
   "Active Account": "Активный аккаунт",
   "Minimum 8 characters": "Минимум 8 символов",
@@ -159,6 +162,7 @@
   "Loading users...": "Загрузка пользователей...",
   "No users found for the selected filters.": "Пользователи по выбранным фильтрам не найдены.",
   "All fields are required": "Все поля обязательны для заполнения",
+  "First name is required": "Имя обязательно",
   "Please enter a valid email address": "Пожалуйста, введите корректный адрес электронной почты",
   "Password must be at least 6 characters": "Пароль должен содержать не менее 6 символов",
   "Please select at least one role": "Пожалуйста, выберите хотя бы одну роль",
@@ -195,5 +199,15 @@
   "Start Date": "Дата начала",
   "End Date": "Дата окончания",
   "Contact": "Контакты",
-  "Assigned Users": "Назначенные пользователи"
+  "Assigned Users": "Назначенные пользователи",
+  "add": {
+    "client": "Добавить клиента",
+    "campaign": "Добавить кампанию",
+    "deal": "Добавить сделку"
+  },
+  "edit": {
+    "client": "Редактировать клиента",
+    "campaign": "Редактировать кампанию",
+    "deal": "Редактировать сделку"
+  }
 }

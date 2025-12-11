@@ -295,8 +295,8 @@ export default function DealsPageContent() {
             date.setDate(date.getDate() + 1);
 
             const year = date.getUTCFullYear();
-            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-            const day = String(date.getUTCDate()).padStart(2, '0');
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+            const day = String(date.getUTCDate()).padStart(2, "0");
 
             return `${year}-${month}-${day}`;
         };
@@ -440,7 +440,7 @@ export default function DealsPageContent() {
                     </div>
                 </div>
 
-                {isAdmin || isManager && <div className="flex gap-4 items-center flex-wrap">
+                {(isAdmin || isManager) && <div className="flex gap-4 items-center flex-wrap">
                     <button
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded cursor-pointer text-sm"
                         onClick={handleOpenAdd}
