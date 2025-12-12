@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     BarChart,
     Bar,
@@ -19,12 +19,26 @@ export default function DealsBarChart() {
     const { t } = useTranslation();
     const statusesItems = useSelector((state) => state.statuses?.items || []);
 
-    const today = new Date();
     const oneMonthAgo = new Date();
+
+    const today = useMemo(() => new Date(), []);
+
+    const defaultStart = useMemo(() => {
+        return new Date(today.getFullYear(), today.getMonth(), 1)
+            .toISOString()
+            .split("T")[0];
+    }, [today]);
+
+    const defaultEnd = useMemo(() => {
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        return lastDay.toISOString().split("T")[0];
+    }, [today]);
+
     oneMonthAgo.setMonth(today.getMonth() - 1);
 
-    const [startDate, setStartDate] = useState(oneMonthAgo.toISOString().split("T")[0]);
-    const [endDate, setEndDate] = useState(today.toISOString().split("T")[0]);
+
+    const [startDate, setStartDate] = useState(defaultStart);
+    const [endDate, setEndDate] = useState(defaultEnd);
 
     const [mode, setMode] = useState("count");
     const [data, setData] = useState([]);
