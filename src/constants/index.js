@@ -7,6 +7,7 @@ export const getTableColumns = (t) => [
     { key: "notes", label: t("Note"), sortable: false },
     { key: "social", label: t("Social"), sortable: false },
     { key: "status", label: t("Status") },
+    { key: "createdBy", label: t("Creator"), sortable: false },
     { key: "action", label: t("Action"), sortable: false },
 ];
 

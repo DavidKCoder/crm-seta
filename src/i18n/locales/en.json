@@ -148,6 +148,7 @@
   "Instagram": "Instagram",
   "Website": "Website",
   "Mark as finished": "Mark as finished",
+  "Creator": "Creator",
   "Created By": "Created By",
   "Start Date": "Start Date",
   "End Date": "End Date",
@@ -193,6 +194,9 @@
   "Save Changes": "Save Changes",
   "Creating...": "Creating...",
   "Are you sure you want to delete this user?": "Are you sure you want to delete this user?",
+  "Are you sure you want to delete this client?": "Are you sure you want to delete this client?",
+  "Are you sure you want to delete this campaign?": "Are you sure you want to delete this campaign?",
+  "Are you sure you want to delete this item?": "Are you sure you want to delete this item?",
   "dashboardMetrics": {
     "allCustomers": "All customers",
     "allCompanies": "All companies",

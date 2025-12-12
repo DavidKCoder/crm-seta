@@ -164,6 +164,9 @@
   "Save Changes": "Պահպանել փոփոխությունները",
   "Creating...": "Ստեղծում...",
   "Are you sure you want to delete this user?": "Վստա՞հ եք, որ ցանկանում եք ջնջել այս օգտվողին։",
+  "Are you sure you want to delete this client?": "Վստա՞հ եք, որ ցանկանում եք ջնջել այս հաճախորդին։",
+  "Are you sure you want to delete this campaign?": "Վստա՞հ եք, որ ցանկանում եք ջնջել այս ընկերությունը։",
+  "Are you sure you want to delete this item?": "Վստա՞հ եք, որ ցանկանում եք ջնջել այս տարրը։",
   "dashboardMetrics": {
     "allCustomers": "Բոլոր հաճախորդները",
     "allCompanies": "Բոլոր ընկերություններ",
@@ -183,6 +186,7 @@
   "Your password has been changed successfully.": "Ձեր գաղտնաբառը հաջողությամբ փոխվեց։",
   "Select users": "Ընտրեք օգտատերեր",
   "Mark as finished": "Նշել որպես ավարտված",
+  "Creator": "Ստեղծող",
   "Created By": "Ստեղծողը",
   "Start Date": "Մեկնարկի ամսաթիվ",
   "End Date": "Ավարտի ամսաթիվ",

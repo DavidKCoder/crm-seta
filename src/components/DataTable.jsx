@@ -79,11 +79,35 @@ export default function DataTable({
 
     const filteredData = useMemo(() => {
         if (!filter.trim()) return data;
-        return data.filter(item =>
-            Object.values(item).some(val =>
-                val?.toString().toLowerCase().includes(filter.toLowerCase()),
-            ),
-        );
+
+        const search = filter.toLowerCase();
+
+        return data.filter(item => {
+            const parts = [];
+
+            Object.entries(item).forEach(([key, val]) => {
+                if (val == null) return;
+
+                if (key === "createdBy" && typeof val === "object") {
+                    const firstName = val.firstName || "";
+                    const lastName = val.lastName || "";
+                    parts.push(`${firstName} ${lastName}`.trim());
+                    return;
+                }
+
+                if (key === "status" && typeof val === "object") {
+                    if (val.name) parts.push(String(val.name));
+                    return;
+                }
+
+                if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
+                    parts.push(String(val));
+                }
+            });
+
+            const haystack = parts.join(" ").toLowerCase();
+            return haystack.includes(search);
+        });
     }, [data, filter]);
 
     const sortedData = useMemo(() => {
@@ -174,31 +198,29 @@ export default function DataTable({
     return (
         <div>
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-10 text-black">
-                    <div className="flex flex-wrap gap-3 items-center justify-start text-black">
-                        <button
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer"
-                            onClick={() => {
-                                setShowForm(!showForm);
-                                setEditingId(null);
-                                // For expenses, initialise form state with expected structure
-                                if (pathname === "/expenses") {
-                                    setFormState({
-                                        dealId: "",
-                                        items: [{ userId: "", roleId: "", amount: "" }],
-                                        notes: "",
-                                        assignedToUserIds: [],
-                                    });
-                                } else {
-                                    setFormState({});
-                                }
-                            }}
-                        >
-                            {t("Add")}
-                        </button>
-                    </div>
-                    <h1 className="text-2xl text-gray-900 font-bold">{t(title +"s")}</h1>
+            <div className="flex justify-between items-center gap-10 text-black mb-6">
+                <div className="flex flex-wrap gap-3 gap-x-5 items-center text-black">
+                    <button
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer"
+                        onClick={() => {
+                            setShowForm(!showForm);
+                            setEditingId(null);
+                            // For expenses, initialise form state with expected structure
+                            if (pathname === "/expenses") {
+                                setFormState({
+                                    dealId: "",
+                                    items: [{ userId: "", roleId: "", amount: "" }],
+                                    notes: "",
+                                    assignedToUserIds: [],
+                                });
+                            } else {
+                                setFormState({});
+                            }
+                        }}
+                    >
+                        {t("Add")}
+                    </button>
+                    <h1 className="text-2xl text-gray-900 font-bold">{t(title + "s")}</h1>
                     <input
                         type="text"
                         placeholder={`${t("Search")}...`}
@@ -209,6 +231,8 @@ export default function DataTable({
                         }}
                         className="border p-2 rounded w-64 pr-8 text-gray-900 border-gray-800"
                     />
+                </div>
+                <div>
                     {onDateRangeChange && (
                         <div className="flex justify-center items-center gap-x-2">
                             <div className="flex items-center gap-1 text-sm">
@@ -298,6 +322,14 @@ export default function DataTable({
                                                 </span>
                                                     );
                                                 })()
+                                            ) : col.key === "createdBy" ? (
+                                                (() => {
+                                                    const creator = item.createdBy;
+                                                    if (!creator) return "";
+                                                    const firstName = creator.firstName || "";
+                                                    const lastName = creator.lastName || "";
+                                                    return `${firstName} ${lastName}`.trim();
+                                                })()
                                             ) : col.key === "id" ? (
                                                 (() => {
                                                     const raw = item.id;
@@ -347,10 +379,19 @@ export default function DataTable({
                                                             if (pathname === "/expenses" && typeof onDelete === "function") {
                                                                 onDelete(item.id);
                                                             } else if (pathname === "/clients") {
+                                                                if (!window.confirm(t("Are you sure you want to delete this client?"))) {
+                                                                    return;
+                                                                }
                                                                 dispatch(deleteClient(item.id));
                                                             } else if (pathname === "/campaign") {
+                                                                if (!window.confirm(t("Are you sure you want to delete this campaign?"))) {
+                                                                    return;
+                                                                }
                                                                 dispatch(deleteCampaign(item.id));
                                                             } else {
+                                                                if (!window.confirm(t("Are you sure you want to delete this item?"))) {
+                                                                    return;
+                                                                }
                                                                 setData(data.filter(d => d.id !== item.id));
                                                             }
                                                         }}
