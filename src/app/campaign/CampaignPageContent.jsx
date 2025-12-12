@@ -16,12 +16,17 @@ export default function CampaignPageContent() {
     const error = useSelector((state) => state.campaigns.error);
 
     const today = useMemo(() => new Date(), []);
+
     const defaultStart = useMemo(() => {
-        const d = new Date();
-        d.setMonth(d.getMonth() - 1);
-        return d.toISOString().split("T")[0];
-    }, []);
-    const defaultEnd = useMemo(() => today.toISOString().split("T")[0], [today]);
+        return new Date(today.getFullYear(), today.getMonth(), 1)
+            .toISOString()
+            .split("T")[0];
+    }, [today]);
+
+    const defaultEnd = useMemo(() => {
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        return lastDay.toISOString().split("T")[0];
+    }, [today]);
     const [dateRange, setDateRange] = useState({ startDate: defaultStart, endDate: defaultEnd });
 
     useEffect(() => {

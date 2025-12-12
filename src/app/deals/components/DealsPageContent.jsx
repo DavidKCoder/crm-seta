@@ -68,12 +68,17 @@ export default function DealsPageContent() {
     }, [dispatch, dealStatusesState.status]);
 
     const today = useMemo(() => new Date(), []);
+
     const defaultStart = useMemo(() => {
-        const d = new Date();
-        d.setMonth(d.getMonth() - 1);
-        return d.toISOString().split("T")[0];
-    }, []);
-    const defaultEnd = useMemo(() => today.toISOString().split("T")[0], [today]);
+        return new Date(today.getFullYear(), today.getMonth(), 1)
+            .toISOString()
+            .split("T")[0];
+    }, [today]);
+
+    const defaultEnd = useMemo(() => {
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        return lastDay.toISOString().split("T")[0];
+    }, [today]);
     const [dateRange, setDateRange] = useState({ startDate: defaultStart, endDate: defaultEnd });
 
     useEffect(() => {
@@ -408,7 +413,18 @@ export default function DealsPageContent() {
                 </div>
             )}
             <div className="flex justify-between items-center mb-6">
-                <div className="flex justify-between items-center gap-5">
+                <div className="flex gap-5">
+                    {(isAdmin || isManager) &&
+                        <div className="flex gap-4 items-center flex-wrap">
+                            <button
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded cursor-pointer text-sm"
+                                onClick={handleOpenAdd}
+                            >
+                                {t("Add Deal")}
+                            </button>
+                        </div>
+                    }
+
                     <h1 className="text-2xl font-bold text-gray-900">{t("Deals")}</h1>
                     <StatusDropdown
                         statuses={statusesItems}
@@ -416,38 +432,30 @@ export default function DealsPageContent() {
                         toggleStatus={toggleStatus}
                         setSelectedStatuses={setSelectedStatuses}
                     />
-                    <div className="flex flex-wrap items-center justify-between max-w-sm gap-x-2">
-                        <div className="flex items-center gap-2 text-black">
-                            <span className="text-sm">{t("From")}:</span>
-                            <input
-                                type="date"
-                                value={dateRange.startDate}
-                                max={dateRange.endDate || undefined}
-                                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                                className="border rounded-md px-2 py-1 text-sm cursor-pointer"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2 text-black">
-                            <span className="text-sm text-gray-700">{t("To")}:</span>
-                            <input
-                                type="date"
-                                value={dateRange.endDate}
-                                min={dateRange.startDate || undefined}
-                                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                                className="border rounded-md px-2 py-1 text-sm cursor-pointer"
-                            />
-                        </div>
-                    </div>
                 </div>
 
-                {(isAdmin || isManager) && <div className="flex gap-4 items-center flex-wrap">
-                    <button
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded cursor-pointer text-sm"
-                        onClick={handleOpenAdd}
-                    >
-                        {t("Add Deal")}
-                    </button>
-                </div>}
+                <div className="flex flex-wrap items-center justify-between max-w-sm gap-x-2">
+                    <div className="flex items-center gap-2 text-black">
+                        <span className="text-sm">{t("From")}:</span>
+                        <input
+                            type="date"
+                            value={dateRange.startDate}
+                            max={dateRange.endDate || undefined}
+                            onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                            className="border rounded-md px-2 py-1 text-sm cursor-pointer"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 text-black">
+                        <span className="text-sm text-gray-700">{t("To")}:</span>
+                        <input
+                            type="date"
+                            value={dateRange.endDate}
+                            min={dateRange.startDate || undefined}
+                            onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                            className="border rounded-md px-2 py-1 text-sm cursor-pointer"
+                        />
+                    </div>
+                </div>
             </div>
 
             <div className="flex gap-4 overflow-x-auto">
